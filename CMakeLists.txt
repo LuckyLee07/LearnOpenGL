@@ -1,15 +1,19 @@
 cmake_minimum_required(VERSION 3.0.0)
-set(PROJECT_NAME LearnOpenGL)
+project(LearnOpenGL)
+#set(PROJECT_NAME LearnOpenGL)
 
 # 使用 C++ 11 标准
 set(CMAKE_CXX_STANDARD 11)
 
-# GLFW第三方库目录
+# GLFW：添加头文件及目标链接
 set(GLFW_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/GLFW)
-
-# 添加头文件及目标链接
 include_directories(${GLFW_DIR}/include)
 link_libraries(${GLFW_DIR}/lib/libglfw.3.dylib)
+
+# GLEW：添加头文件及目标链接
+set(GLEW_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/GLEW)
+include_directories(${GLEW_DIR}/include)
+link_libraries(${GLEW_DIR}/lib/libGLEW.2.2.0.dylib)
 
 #SET(CMAKE_BUILD_TYPE "Debug")  
 #SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g2 -ggdb")  

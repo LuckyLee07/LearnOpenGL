@@ -34,13 +34,16 @@
   * 参考链接为：<u>https://www.cnblogs.com/zjutzz/p/10982675.html</u>
 
 
------2020.03.23-----
+-----2020.03.24-----
 ### <font size=4 color=#1E90FF>**<2> OpenGL相关技术：shader/VAO/VBO/IBO的学习及掌握**</font>
- #### 1、由于Mac M1使用Metal技术，对OpenGL的支持比Intel芯片差，需要为此做相应的硬件适配。
-  * 遇到的问题1：version '330' is not supported
-  * 解决方案参考：将VERSION_MAJOR/MINOR改为3/3，将PROFILE改为CORE模式并开启向前兼容GLFW_OPENGL_FORWARD_COMPAT
-  * 遇到的问题2：shader不再抱错但还是黑屏，原因为CORE模式下不包含任何弃用功能，因此不会再创建默认的VertexArray，需自己创建。
+ #### 0、由于Mac M1使用Metal技术，对OpenGL的支持比Intel芯片差，需要为此做相应的硬件适配。
+  * 遇到的问题1：`version '330' is not supported`
+  * 解决方案参考：将`VERSION_MAJOR/MINOR`改为3/3，将PROFILE改为`CORE`模式并开启向前兼容`GLFW_OPENGL_FORWARD_COMPAT`
+  * 遇到的问题2：shader不再抱错但还是黑屏，原因为`CORE模式下不包含任何弃用功能`，因此不会再创建默认的VertexArray，需自己创建。
   * 参考的链接1：<u>https://www.cnblogs.com/liangliangh/archive/2016/08/23/4765645.html</u>
   * 参考的链接2：<u>https://stackoverflow.com/questions/30057286/how-to-use-vbos-without-vaos-with-opengl-core-profile</u>
   * 参考的链接3：<u>https://stackoverflow.com/questions/62990972/why-is-opengl-giving-me-the-error-error-01-version-330-is-not-support</u>
   * 参考的链接4：<u>https://www.glfw.org/docs/3.3/window_guide.html#GLFW_OPENGL_FORWARD_COMPAT_hint</u>
+ 
+ #### 1、编写简单的shader绘制颜色、使用VAO/VBO/IBO绘制三角形及四边形
+  * 注意点：索引缓冲区对象使用的类型是`GL_ELEMENT_ARRAY_BUFFER`而非`GL_INDEX_ARRAY`。

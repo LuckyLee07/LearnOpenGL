@@ -8,6 +8,7 @@
 #include "VertexBufferLayout.h"
 #include "VertexArray.h"
 #include "Shader.h"
+#include "Texture.h"
 
 int main(void)
 {
@@ -54,10 +55,11 @@ int main(void)
     std::cout << glGetString(GL_VERSION) << std::endl;
 
     float positions[] = {
-        -0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f, // 0
-         0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f, // 1
-         0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f, // 2
-        -0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 0.0f, // 3
+        //位置属性             //颜色属性          //纹理坐标
+        -0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f, // 0左下
+         0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, // 1右下
+         0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  1.0f, 1.0f, // 2右上
+        -0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f, // 3左上
     };
 
     unsigned int indices[] = {
@@ -71,19 +73,23 @@ int main(void)
 
     VertexArray vao; //顶点数组对象
 
-    VertexBuffer vbo(positions, 8 * 6 * sizeof(float));
+    VertexBuffer vbo(positions, 8 * 4 * sizeof(float));
 
     VertexBufferLayout layout;
     layout.Push<float>(3); //位置
     layout.Push<float>(3); //颜色
+    layout.Push<float>(2); //纹理
     vao.AddBuffer(vbo, layout);
     
     IndexBuffer ibo(indices, 6); //索引缓冲对象
 
     Shader shader("res/shaders/Basic.shader");
     shader.Bind(); //创建Program后绑定
-    
     shader.SetUniform4f("u_Color", 0.2f, 0.3f, 0.8f, 1.0f);
+
+    Texture texture("res/textures/CHernoLogo.png");
+    texture.Bind(0);
+    shader.SetUniform1i("u_Texture", 0);
 
     // Unbind Data
     glUseProgram(0);

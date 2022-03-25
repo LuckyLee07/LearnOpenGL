@@ -6,12 +6,32 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+//#define ASSERT(x) if (!(x)) __debugbreak();
+#define GLCall(x) GLClearError();(x);\
+    assert(GLLogCall(#x, __FILE__, __LINE__))
+
+static void GLClearError()
+{
+    while (glGetError() != GL_NO_ERROR);    
+}
+
+static bool GLLogCall(const char* func, const char* file, int line)
+{
+    while (GLenum error = glGetError())
+    {
+        std::cout << "[OpenGL Error ] (" << error << "): " << func <<
+            " " << file << ":" << line << std::endl;
+        return false;
+    }
+    return true;
+}
+
+
 struct ShaderProgramSource
 {
     std::string VertexSource;
     std::string FragmentSource;
 };
-
 
 static ShaderProgramSource ParseShader(const std::string& filepath)
 {
@@ -122,6 +142,11 @@ int main(void)
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
 
+    //交换间隔表示交换缓冲区之前等待的帧数，通常称为V-Sync(垂直同步)
+    glfwSwapInterval(1); //默认设置为0 关闭垂直同步
+
+    //std::cout << "Flag:" << glfwIsCompositionEnabled() << std::endl;
+
     if (glewInit() != GLEW_OK)
     {
         std::cout << "GLEW Init Error!" << std::endl;
@@ -158,20 +183,34 @@ int main(void)
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (const void *)0);
 
-    
+
     ShaderProgramSource shaderSource = ParseShader("res/shaders/Basic.shader");
-    unsigned int shader = CreateShader(shaderSource.VertexSource, shaderSource.FragmentSource);
-    if (shader > 0) glUseProgram(shader);
+    unsigned int programId = CreateShader(shaderSource.VertexSource, shaderSource.FragmentSource);
+    if (programId > 0) glUseProgram(programId);
     
+    int location = glGetUniformLocation(programId, "u_Color");
+    //assert(location != -1);
+    glUniform4f(location, 0.2f, 0.3f, 0.8f, 1.0f);
+
+    float r = 0.0f;
+    float increment = 0.05f;
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
+        glUniform4f(location, r, 0.3f, 0.8f, 1.0f);
         //glDrawArrays(GL_TRIANGLES, 0, 6);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+        GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 
+        if (r > 1.0f)
+            increment = -0.05f;
+        else if (r < 0.05f)
+            increment = 0.05f;
+        
+        r += increment;
+        
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
 

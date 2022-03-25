@@ -6,26 +6,9 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-//#define ASSERT(x) if (!(x)) __debugbreak();
-#define GLCall(x) GLClearError();(x);\
-    assert(GLLogCall(#x, __FILE__, __LINE__))
-
-static void GLClearError()
-{
-    while (glGetError() != GL_NO_ERROR);    
-}
-
-static bool GLLogCall(const char* func, const char* file, int line)
-{
-    while (GLenum error = glGetError())
-    {
-        std::cout << "[OpenGL Error ] (" << error << "): " << func <<
-            " " << file << ":" << line << std::endl;
-        return false;
-    }
-    return true;
-}
-
+#include "Renderer.h"
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
 
 struct ShaderProgramSource
 {
@@ -166,19 +149,17 @@ int main(void)
         2, 3, 0, // 2
     };
 
+    //VAO(vertex Array Object)：顶点数组对象
+    //VBO(vertex Buffer Object)：顶点缓冲对象
+    //IBO(index Buffer Object)：索引缓冲对象
+
     unsigned int VAO;
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
 
-    unsigned int VBO;
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float), positions, GL_STATIC_DRAW);
+    VertexBuffer vbo(positions, 8 * 2 * sizeof(float));
 
-    unsigned int IBO;
-    glGenBuffers(1, &IBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 2 * 3 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+    IndexBuffer ibo(indices, 6); //索引缓冲对象
     
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (const void *)0);
@@ -192,6 +173,12 @@ int main(void)
     //assert(location != -1);
     glUniform4f(location, 0.2f, 0.3f, 0.8f, 1.0f);
 
+    // Unbind Data
+    glUseProgram(0);
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
     float r = 0.0f;
     float increment = 0.05f;
     /* Loop until the user closes the window */
@@ -200,7 +187,11 @@ int main(void)
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
+        glUseProgram(programId);
         glUniform4f(location, r, 0.3f, 0.8f, 1.0f);
+        glBindVertexArray(VAO);
+        ibo.Bind();
+
         //glDrawArrays(GL_TRIANGLES, 0, 6);
         GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 

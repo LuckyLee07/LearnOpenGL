@@ -20,6 +20,7 @@ link_libraries(${GLEW_DIR}/lib/libGLEW.2.2.0.dylib)
 #SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")
 
 # 执行编译命令
+include_directories(src)
 aux_source_directory(src DIR_SRCS)
 # 添加一个可编译的目标到工程
 add_executable (${PROJECT_NAME} ${DIR_SRCS})

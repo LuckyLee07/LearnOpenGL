@@ -139,10 +139,10 @@ int main(void)
     std::cout << glGetString(GL_VERSION) << std::endl;
 
     float positions[] = {
-        -0.5f, -0.5f, // 0
-         0.5f, -0.5f, // 1
-         0.5f,  0.5f, // 2
-        -0.5f,  0.5f  // 3
+        -0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f, // 0
+         0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f, // 1
+         0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f, // 2
+        -0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 0.0f, // 3
     };
 
     unsigned int indices[] = {
@@ -156,17 +156,14 @@ int main(void)
 
     VertexArray vao; //顶点数组对象
 
-    VertexBuffer vbo(positions, 8 * 2 * sizeof(float));
+    VertexBuffer vbo(positions, 8 * 6 * sizeof(float));
 
     VertexBufferLayout layout;
-    layout.Push<float>(2);
+    layout.Push<float>(3); //位置
+    layout.Push<float>(3); //颜色
     vao.AddBuffer(vbo, layout);
-
-    IndexBuffer ibo(indices, 6); //索引缓冲对象
     
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (const void *)0);
-
+    IndexBuffer ibo(indices, 6); //索引缓冲对象
 
     ShaderProgramSource shaderSource = ParseShader("res/shaders/Basic.shader");
     unsigned int programId = CreateShader(shaderSource.VertexSource, shaderSource.FragmentSource);
@@ -211,6 +208,8 @@ int main(void)
         /* Poll for and process events */
         glfwPollEvents();
     }
+
+    glDeleteProgram(programId);
 
     glfwTerminate();
     return 0;

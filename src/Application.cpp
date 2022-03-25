@@ -9,6 +9,7 @@
 #include "Renderer.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "VertexArray.h"
 
 struct ShaderProgramSource
 {
@@ -153,11 +154,13 @@ int main(void)
     //VBO(vertex Buffer Object)：顶点缓冲对象
     //IBO(index Buffer Object)：索引缓冲对象
 
-    unsigned int VAO;
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
+    VertexArray vao; //顶点数组对象
 
     VertexBuffer vbo(positions, 8 * 2 * sizeof(float));
+
+    VertexBufferLayout layout;
+    layout.Push<float>(2);
+    vao.AddBuffer(vbo, layout);
 
     IndexBuffer ibo(indices, 6); //索引缓冲对象
     
@@ -189,7 +192,7 @@ int main(void)
 
         glUseProgram(programId);
         glUniform4f(location, r, 0.3f, 0.8f, 1.0f);
-        glBindVertexArray(VAO);
+        vao.Bind();
         ibo.Bind();
 
         //glDrawArrays(GL_TRIANGLES, 0, 6);

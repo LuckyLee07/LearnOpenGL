@@ -30,5 +30,6 @@ void main()
 {   
     vec4 texColor = texture(u_Texture, texCoord);
     vec4 tempColor = vec4(u_Color.r, ourColor.g, u_Color.b, 1.0);
-    color = mix(texColor, tempColor, 0.2);
+    //color = mix(texColor, tempColor, 0.3);
+    color = texColor;
 }

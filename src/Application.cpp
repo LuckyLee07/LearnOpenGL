@@ -52,6 +52,10 @@ int main(void)
         std::cout << "GLEW Init Error!" << std::endl;
     }
 
+    //Blend 混合是将源色和目标色以某种方式混合生成特效的技术 常用来绘制透明或半透明的物体
+    glEnable(GL_BLEND); //启用混合
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     std::cout << glGetString(GL_VERSION) << std::endl;
 
     float positions[] = {
@@ -87,7 +91,8 @@ int main(void)
     shader.Bind(); //创建Program后绑定
     shader.SetUniform4f("u_Color", 0.2f, 0.3f, 0.8f, 1.0f);
 
-    Texture texture("res/textures/CHernoLogo.png");
+    Texture texture("res/textures/ChernoLogo.png");
+    //Texture texture("res/textures/BeatuyAvatar.png");
     texture.Bind(0);
     shader.SetUniform1i("u_Texture", 0);
 

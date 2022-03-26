@@ -76,7 +76,6 @@ int main(void)
     //IBO(index Buffer Object)：索引缓冲对象
 
     VertexArray vao; //顶点数组对象
-
     VertexBuffer vbo(positions, 8 * 4 * sizeof(float));
 
     VertexBufferLayout layout;
@@ -92,9 +91,15 @@ int main(void)
     shader.SetUniform4f("u_Color", 0.2f, 0.3f, 0.8f, 1.0f);
 
     Texture texture("res/textures/ChernoLogo.png");
-    //Texture texture("res/textures/BeatuyAvatar.png");
     texture.Bind(0);
     shader.SetUniform1i("u_Texture", 0);
+    
+    Texture texture1("res/textures/BeatuyAvatar.png");
+    texture1.Bind(1);
+    shader.SetUniform1i("u_Texture1", 1);
+
+    texture.Unbind();
+    texture1.Unbind();
 
     // Unbind Data
     glUseProgram(0);
@@ -114,6 +119,9 @@ int main(void)
 
         shader.Bind(); //设置Uniform前需先绑定Shader
         shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);
+        
+        texture.Bind(0);
+        texture1.Bind(1);
 
         renderer.Draw(vao, ibo, shader);
 

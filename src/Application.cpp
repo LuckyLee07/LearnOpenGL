@@ -11,6 +11,8 @@
 #include "Texture.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
 
 int main(void)
 {
@@ -124,6 +126,13 @@ int main(void)
 
     Renderer renderer;
 
+    ImGui::CreateContext();
+    ImGui::StyleColorsDark();
+
+    const char* glsl_version = "#version 150";
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init(glsl_version);
+
     float r = 0.0f;
     float increment = 0.05f;
     /* Loop until the user closes the window */
@@ -131,6 +140,11 @@ int main(void)
     {
         /* Render here */
         renderer.Clear();
+
+        // Start the Dear ImGui frame
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
 
         shader.Bind(); //设置Uniform前需先绑定Shader
         shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);
@@ -157,6 +171,24 @@ int main(void)
             increment = 0.05f;
         
         r += increment;
+
+        {
+            static float f = 0.0f;
+            static int counter = 0;
+
+            ImGui::Begin("Hello, world!");// Create a window called "Hello, world!"
+            ImGui::SliderFloat3("TranslationA", &translateA.x, 0, 480);
+            ImGui::SliderFloat3("TranslationB", &translateB.x, 0, 480);
+
+            float avgFPS = 1000.0f / ImGui::GetIO().Framerate;
+            float totalFPS = ImGui::GetIO().Framerate;
+            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", avgFPS, totalFPS);
+            ImGui::End();
+        }
+
+        // Rendering
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         
         /* Swap front and back buffers */
         glfwSwapBuffers(window);

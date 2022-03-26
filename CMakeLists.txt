@@ -25,6 +25,7 @@ include_directories(src/vendor)
 # 添加指定目录代码
 aux_source_directory(src DIR_SRCS)
 aux_source_directory(src/vendor/stb_image DIR_SRCS)
+aux_source_directory(src/vendor/imgui DIR_SRCS)
 # 添加一个可编译的目标到工程
 add_executable(${PROJECT_NAME} ${DIR_SRCS})
 

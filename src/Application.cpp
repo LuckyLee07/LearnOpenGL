@@ -9,6 +9,8 @@
 #include "VertexArray.h"
 #include "Shader.h"
 #include "Texture.h"
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 
 int main(void)
 {
@@ -78,6 +80,7 @@ int main(void)
     VertexArray vao; //顶点数组对象
     VertexBuffer vbo(positions, 8 * 4 * sizeof(float));
 
+    // VAO顶点数组对象设置属性
     VertexBufferLayout layout;
     layout.Push<float>(3); //位置
     layout.Push<float>(3); //颜色
@@ -86,10 +89,12 @@ int main(void)
     
     IndexBuffer ibo(indices, 6); //索引缓冲对象
 
+    // Shader着色器相关
     Shader shader("res/shaders/Basic.shader");
     shader.Bind(); //创建Program后绑定
     shader.SetUniform4f("u_Color", 0.2f, 0.3f, 0.8f, 1.0f);
 
+    // 纹理Texture相关
     Texture texture("res/textures/ChernoLogo.png");
     texture.Bind(0);
     shader.SetUniform1i("u_Texture", 0);
@@ -100,6 +105,10 @@ int main(void)
 
     texture.Unbind();
     texture1.Unbind();
+
+    // 投影转换等数学相关
+    glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
+    shader.SetUniformMat4f("u_MVP", proj);
 
     // Unbind Data
     glUseProgram(0);

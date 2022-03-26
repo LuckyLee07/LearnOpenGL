@@ -48,7 +48,7 @@
  #### 1、编写简单的shader绘制颜色、使用VAO/VBO/IBO绘制三角形及四边形
   * 注意点：索引缓冲区对象使用的类型是`GL_ELEMENT_ARRAY_BUFFER`而非`GL_INDEX_ARRAY`。
 
-#### 2、使用stb_image库图片加载到内存并绘制在OpenGL场景中
+ #### 2、使用stb_image库图片加载到内存并绘制在OpenGL场景中
   * 注意点：图片一般指png等格式化文件，由文件头和数据体组成。而纹理则是一块连续存放颜色值的区域。
   * cmake配置：`aux_source_directory(src/vendor/stb_image DIR_SRCS)`
   * 代码注意点：`glTexImage2D`函数中`internalformat`参数是指定OpenGL是如何管理纹理单元中数据格式的，一般使用`GL_RGBA`。format指的是载入纹理的格式，它告诉OpenGL外部数据是如何存储每个像素数据的。
@@ -57,3 +57,13 @@
   * 参考的链接2：<u>https://blog.csdn.net/u011371324/article/details/77823860</u>
   * 参考的链接3：<u>https://blog.csdn.net/jeffasd/article/details/78135588</u>
 
+ #### 3、集成glm数学库并通过平移转换绘制多个渲染对象
+  * 注意点：OpenGL库的计算从右往左，因此需记住mvp的计算公式为`mvp = proj * view * model`。
+  * 关于模型变换：<u>https://blog.csdn.net/wangdingqiaoit/article/details/51531002</u>
+  * 关于视变换：<u>https://blog.csdn.net/wangdingqiaoit/article/details/51570001</u>
+  * 关于投影矩阵变换：<u>https://blog.csdn.net/wangdingqiaoit/article/details/51589825</u>
+  * 坐标变换过程：<u>https://blog.csdn.net/wangdingqiaoit/article/details/51594408</u>
+
+ 
+ -----2020.03.27-----
+### <font size=4 color=#1E90FF>**<3> 集成ImGui库并编写ClearColor以及Texture测试用例**</font>

@@ -21,11 +21,14 @@ link_libraries(${GLEW_DIR}/lib/libGLEW.2.2.0.dylib)
 
 # 执行编译命令
 include_directories(src)
+include_directories(src/test)
 include_directories(src/vendor)
 # 添加指定目录代码
 aux_source_directory(src DIR_SRCS)
+aux_source_directory(src/test DIR_SRCS)
 aux_source_directory(src/vendor/stb_image DIR_SRCS)
 aux_source_directory(src/vendor/imgui DIR_SRCS)
+
 # 添加一个可编译的目标到工程
 add_executable(${PROJECT_NAME} ${DIR_SRCS})
 

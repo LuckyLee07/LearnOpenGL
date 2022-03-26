@@ -3,6 +3,7 @@
 
 #include <string>
 #include "glm/glm.hpp"
+#include <unordered_map>
 
 struct ShaderSource
 {
@@ -15,6 +16,7 @@ class Shader
 private:
     std::string m_Filepath;
     unsigned int m_RenderId;
+    std::unordered_map<std::string, unsigned int> m_UniformLocationCache;
 public:
     Shader(const std::string& filepath);
     ~Shader();

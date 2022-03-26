@@ -13,6 +13,7 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
+#include "TestClearColor.h"
 
 int main(void)
 {
@@ -62,68 +63,6 @@ int main(void)
 
     std::cout << glGetString(GL_VERSION) << std::endl;
 
-    float positions[] = {
-        //位置属性             //颜色属性          //纹理坐标
-        0.0f,   0.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f, // 0左下
-        100.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, // 1右下
-        100.0f, 100.0f, 0.0f,  0.0f, 0.0f, 1.0f,  1.0f, 1.0f, // 2右上
-        0.0f,   100.0f, 0.0f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f, // 3左上
-    };
-
-    unsigned int indices[] = {
-        0, 1, 2, // 1
-        2, 3, 0, // 2
-    };
-
-    //VAO(vertex Array Object)：顶点数组对象
-    //VBO(vertex Buffer Object)：顶点缓冲对象
-    //IBO(index Buffer Object)：索引缓冲对象
-
-    VertexArray vao; //顶点数组对象
-    VertexBuffer vbo(positions, 8 * 4 * sizeof(float));
-
-    // VAO顶点数组对象设置属性
-    VertexBufferLayout layout;
-    layout.Push<float>(3); //位置
-    layout.Push<float>(3); //颜色
-    layout.Push<float>(2); //纹理
-    vao.AddBuffer(vbo, layout);
-    
-    IndexBuffer ibo(indices, 6); //索引缓冲对象
-
-    // Shader着色器相关
-    Shader shader("res/shaders/Basic.shader");
-    shader.Bind(); //创建Program后绑定
-    shader.SetUniform4f("u_Color", 0.2f, 0.3f, 0.8f, 1.0f);
-
-    // 纹理Texture相关
-    Texture texture("res/textures/ChernoLogo.png");
-    texture.Bind(0);
-    shader.SetUniform1i("u_Texture", 0);
-    
-    Texture texture1("res/textures/BeatuyAvatar.png");
-    texture1.Bind(1);
-    shader.SetUniform1i("u_Texture1", 1);
-
-    texture.Unbind();
-    texture1.Unbind();
-
-    //对象平移->批量渲染
-    glm::vec3 translateA(0.0f, 0.0f, 0.0f);
-    glm::vec3 translateB(200.0f, 200.0f, 0.0f);
-    
-    // 投影转换等数学相关
-    glm::mat4 proj = glm::ortho(0.0f, 640.0f, 0.0f, 480.0f, -1.0f, 1.0f);
-    glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f));
-    
-    //shader.SetUniformMat4f("u_MVP", proj);
-
-    // Unbind Data
-    glUseProgram(0);
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
     Renderer renderer;
 
     ImGui::CreateContext();
@@ -133,58 +72,21 @@ int main(void)
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
-    float r = 0.0f;
-    float increment = 0.05f;
-    /* Loop until the user closes the window */
+    test::TestClearColor test;
+
     while (!glfwWindowShouldClose(window))
     {
-        /* Render here */
         renderer.Clear();
+
+        test.OnUpdate(0.0f);
+        test.OnRender();
 
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        shader.Bind(); //设置Uniform前需先绑定Shader
-        shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);
-        
-        texture.Bind(0);
-        texture1.Bind(1);
-
-        {
-            glm::mat4 model = glm::translate(glm::mat4(1.0f), translateA);
-            glm::mat4 mvp = proj * view * model;
-            shader.SetUniformMat4f("u_MVP", mvp);
-            renderer.Draw(vao, ibo, shader);
-        }
-        {
-            glm::mat4 model = glm::translate(glm::mat4(1.0f), translateB);
-            glm::mat4 mvp = proj * view * model;
-            shader.SetUniformMat4f("u_MVP", mvp);
-            renderer.Draw(vao, ibo, shader);
-        }
-
-        if (r > 1.0f)
-            increment = -0.05f;
-        else if (r < 0.05f)
-            increment = 0.05f;
-        
-        r += increment;
-
-        {
-            static float f = 0.0f;
-            static int counter = 0;
-
-            ImGui::Begin("Hello, world!");// Create a window called "Hello, world!"
-            ImGui::SliderFloat3("TranslationA", &translateA.x, 0, 480);
-            ImGui::SliderFloat3("TranslationB", &translateB.x, 0, 480);
-
-            float avgFPS = 1000.0f / ImGui::GetIO().Framerate;
-            float totalFPS = ImGui::GetIO().Framerate;
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", avgFPS, totalFPS);
-            ImGui::End();
-        }
+        test.OnImGuiRender();
 
         // Rendering
         ImGui::Render();

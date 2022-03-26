@@ -49,6 +49,12 @@ void Shader::SetUniformMat4f(const std::string& name, const glm::mat4& matrix)
 
 int Shader::GetUniformLocation(const std::string& name)
 {
+    auto findIter = m_UniformLocationCache.find(name);
+    if (findIter != m_UniformLocationCache.end())
+    {
+        return findIter->second;
+    }
+    
     int location = glGetUniformLocation(m_RenderId, name.c_str());
     if (location == -1)
         std::cout << "Warning: uniform '" << name << "' doesn't exist!" << std::endl;

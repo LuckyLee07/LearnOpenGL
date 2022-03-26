@@ -37,5 +37,6 @@ void main()
     vec4 tempColor = vec4(u_Color.r, ourColor.g, u_Color.b, 1.0);
     //color = mix(texColor, tempColor, 0.3);
     color = mix(texColor, texColor1, 0.8);
-    color = texColor * tempColor; //顶点颜色和纹理颜色的混合色
+    color = tempColor * texColor1; //顶点颜色和纹理颜色的混合色
+    //color = vec4(ourColor, 1.0);
 }

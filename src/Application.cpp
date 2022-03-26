@@ -62,10 +62,10 @@ int main(void)
 
     float positions[] = {
         //位置属性             //颜色属性          //纹理坐标
-        -0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f, // 0左下
-         0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, // 1右下
-         0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  1.0f, 1.0f, // 2右上
-        -0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f, // 3左上
+        0.0f,   0.0f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f, // 0左下
+        100.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, // 1右下
+        100.0f, 100.0f, 0.0f,  0.0f, 0.0f, 1.0f,  1.0f, 1.0f, // 2右上
+        0.0f,   100.0f, 0.0f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f, // 3左上
     };
 
     unsigned int indices[] = {
@@ -106,9 +106,15 @@ int main(void)
     texture.Unbind();
     texture1.Unbind();
 
+    //对象平移->批量渲染
+    glm::vec3 translateA(0.0f, 0.0f, 0.0f);
+    glm::vec3 translateB(200.0f, 200.0f, 0.0f);
+    
     // 投影转换等数学相关
-    glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
-    shader.SetUniformMat4f("u_MVP", proj);
+    glm::mat4 proj = glm::ortho(0.0f, 640.0f, 0.0f, 480.0f, -1.0f, 1.0f);
+    glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f));
+    
+    //shader.SetUniformMat4f("u_MVP", proj);
 
     // Unbind Data
     glUseProgram(0);
@@ -132,7 +138,18 @@ int main(void)
         texture.Bind(0);
         texture1.Bind(1);
 
-        renderer.Draw(vao, ibo, shader);
+        {
+            glm::mat4 model = glm::translate(glm::mat4(1.0f), translateA);
+            glm::mat4 mvp = proj * view * model;
+            shader.SetUniformMat4f("u_MVP", mvp);
+            renderer.Draw(vao, ibo, shader);
+        }
+        {
+            glm::mat4 model = glm::translate(glm::mat4(1.0f), translateB);
+            glm::mat4 mvp = proj * view * model;
+            shader.SetUniformMat4f("u_MVP", mvp);
+            renderer.Draw(vao, ibo, shader);
+        }
 
         if (r > 1.0f)
             increment = -0.05f;

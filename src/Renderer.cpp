@@ -1,20 +1,27 @@
 #include "Renderer.h"
 #include <iostream>
 
-void GLClearError()
+const char* gl_error_as_cstr(GLenum error)
 {
-    while (glGetError() != GL_NO_ERROR);    
+    switch (error)
+    {
+        case GL_NO_ERROR: return "GL_NO_ERROR";
+        case GL_INVALID_ENUM: return "GL_INVALID_ENUM";
+        case GL_INVALID_VALUE: return "GL_INVALID_VALUE";
+        case GL_INVALID_OPERATION: return "GL_INVALID_OPERATION";
+        case GL_INVALID_FRAMEBUFFER_OPERATION: return "GL_INVALID_FRAMEBUFFER_OPERATION";
+        case GL_OUT_OF_MEMORY: return "GL_OUT_OF_MEMORY";
+        default: return "UNKNOWN";
+    }
 }
 
-bool GLLogCall(const char* func, const char* file, int line)
+void gl_check_errors(const char* call, GLenum err, const char* file, int line)
 {
-    while (GLenum error = glGetError())
+    if (err != GL_NO_ERROR)
     {
-        std::cout << "[OpenGL Error ] (" << error << "): " << func <<
-            " " << file << ":" << line << std::endl;
-        return false;
+        fprintf(stderr, "%s:%d: OpenGL error %s: %s\n", file, line, gl_error_as_cstr(err), call);
+        abort();
     }
-    return true;
 }
 
 void Renderer::Clear()

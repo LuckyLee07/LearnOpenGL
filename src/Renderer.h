@@ -6,14 +6,14 @@
 #include "IndexBuffer.h"
 #include "Shader.h"
 
-//#define ASSERT(x) if (!(x)) __debugbreak();
+#define __FILENAME__ strrchr(__FILE__,'/')+1
 #define ASSERT(x) if (!(x)) assert(false);
-#define GLCall(x) GLClearError();(x);\
-    ASSERT(GLLogCall(#x, __FILE__, __LINE__))
 
-void GLClearError();
+void gl_check_errors(const char* call, GLenum err, const char* file, int line);
 
-bool GLLogCall(const char* func, const char* file, int line);
+#define GLCall(call) \
+    call;       \
+    gl_check_errors(#call, glGetError(), __FILENAME__, __LINE__);
 
 class Renderer
 {

@@ -67,3 +67,6 @@
  
  -----2020.03.27-----
 ### <font size=4 color=#1E90FF>**<3> 集成ImGui库并编写ClearColor以及Texture测试用例**</font>
+ #### 1、TestMenu类的一些实现细节：存储的是函数指针std::function<Test*()>
+  * 注意点1：`std::vector<std::pair<std::string, std::function<Test*()>>> m_Tests;`
+  * 注意点2：`m_Tests.push_back(std::make_pair(name, []() { return new T(); }));`

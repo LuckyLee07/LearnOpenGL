@@ -11,9 +11,9 @@ namespace test
         TestClearColor();
         virtual ~TestClearColor();
 
-        virtual void OnUpdate(float deltatime) override;
-        virtual void OnRender() override;
-        virtual void OnImGuiRender() override;
+        void OnUpdate(float deltatime) override;
+        void OnRender() override;
+        void OnImGuiRender() override;
     private:
         float m_ClearColor[4];
     };

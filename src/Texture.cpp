@@ -14,14 +14,14 @@ Texture::Texture(const std::string& path)
     GLCall(glBindTexture(GL_TEXTURE_2D, m_RenderId));
 
     //为当前绑定的纹理对象设置环绕、过滤方式
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 
     //internalformat和format可以理解为纹理数据分别在显存和内存中存储纹理数据的格式 可选为GL_ALPHA，GL_RGB，GL_RGBA等
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_LocalBuffer);
-    glBindTexture(GL_TEXTURE_2D, m_RenderId);
+    GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_LocalBuffer));
+    GLCall(glBindTexture(GL_TEXTURE_2D, m_RenderId));
 
     if (m_LocalBuffer) stbi_image_free(m_LocalBuffer);
 }
@@ -33,8 +33,8 @@ Texture::~Texture()
 
 void Texture::Bind(unsigned int slot) const
 {
-    glActiveTexture(GL_TEXTURE0 + slot);
-    glBindTexture(GL_TEXTURE_2D, m_RenderId);
+    GLCall(glActiveTexture(GL_TEXTURE0 + slot));
+    GLCall(glBindTexture(GL_TEXTURE_2D, m_RenderId));
 }
 
 void Texture::Unbind() const

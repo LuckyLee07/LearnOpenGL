@@ -32,7 +32,7 @@ void Renderer::Clear()
 void Renderer::Draw(const VertexArray& vao, const IndexBuffer& ibo, const Shader& shader)
 {
     vao.Bind();
-    //ibo.Bind();
+    ibo.Bind();
     //shader.Bind();
     
     //glDrawArrays(GL_TRIANGLES, 0, 6);

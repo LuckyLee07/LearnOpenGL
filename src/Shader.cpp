@@ -96,11 +96,11 @@ unsigned int Shader::CompileShader(unsigned int type, const std::string& source)
 {
     unsigned int shaderId = glCreateShader(type);
     const char* src = source.c_str();
-    glShaderSource(shaderId, 1, &src, nullptr);
-    glCompileShader(shaderId);
+    GLCall(glShaderSource(shaderId, 1, &src, nullptr));
+    GLCall(glCompileShader(shaderId));
 
     GLint result;
-    glGetShaderiv(shaderId, GL_COMPILE_STATUS, &result);
+    GLCall(glGetShaderiv(shaderId, GL_COMPILE_STATUS, &result));
     if (result != GL_TRUE)
     {
         GLint length;
@@ -124,18 +124,18 @@ unsigned int Shader::CompileShader(unsigned int type, const std::string& source)
 
 unsigned int Shader::CreateShader(const std::string& vertexShader, const std::string& fragmentShader)
 {
-    unsigned int programId = glCreateProgram();
+    unsigned int programId = GLCall(glCreateProgram());
     unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexShader);
     unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
 
-    glAttachShader(programId, vs);
-    glAttachShader(programId, fs);
-    glLinkProgram(programId);
-    glValidateProgram(programId);
+    GLCall(glAttachShader(programId, vs));
+    GLCall(glAttachShader(programId, fs));
+    GLCall(glLinkProgram(programId));
+    GLCall(glValidateProgram(programId));
 
     //glDetachShader/glDeleteShader：Detach后无源码调试麻烦
-    glDeleteShader(vs);
-    glDeleteShader(fs);
+    GLCall(glDeleteShader(vs));
+    GLCall(glDeleteShader(fs));
 
     return programId;
 }

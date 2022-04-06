@@ -6,13 +6,13 @@
 
 VertexArray::VertexArray()
 {
-    glGenVertexArrays(1, &m_RenderId);
-    glBindVertexArray(m_RenderId);
+    GLCall(glGenVertexArrays(1, &m_RenderId));
+    GLCall(glBindVertexArray(m_RenderId));
 }
 
 VertexArray::~VertexArray()
 {
-    glDeleteVertexArrays(1, &m_RenderId);
+    GLCall(glDeleteVertexArrays(1, &m_RenderId));
 }
 
 void VertexArray::AddBuffer(const VertexBuffer& vb, const VertexBufferLayout& layout)
@@ -25,8 +25,8 @@ void VertexArray::AddBuffer(const VertexBuffer& vb, const VertexBufferLayout& la
     for (size_t i = 0; i < elements.size(); i++)
     {
         const auto& element = elements[i];
-        glEnableVertexAttribArray(i);
-        glVertexAttribPointer(i, element.count, element.type, element.normalized, stride, (const void*)(intptr_t)offset);
+        GLCall(glEnableVertexAttribArray(i));
+        GLCall(glVertexAttribPointer(i, element.count, element.type, element.normalized, stride, (const void*)(intptr_t)offset));
         offset += element.count * VertexBufferElement::GetSizeOfType(element.type);
     }
     
@@ -34,10 +34,10 @@ void VertexArray::AddBuffer(const VertexBuffer& vb, const VertexBufferLayout& la
 
 void VertexArray::Bind() const
 {
-    glBindVertexArray(m_RenderId);
+    GLCall(glBindVertexArray(m_RenderId));
 }
 
 void VertexArray::Unbind() const
 {
-    glBindVertexArray(0);
+    GLCall(glBindVertexArray(0));
 }

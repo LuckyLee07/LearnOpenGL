@@ -17,6 +17,8 @@
 #include "TestClearColor.h"
 #include "TestTexture2D.h"
 
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
+
 int main(void)
 {
     std::cout << "Hello OpenGL!" << std::endl;
@@ -52,7 +54,9 @@ int main(void)
     //交换间隔表示交换缓冲区之前等待的帧数，通常称为V-Sync(垂直同步)
     glfwSwapInterval(1); //默认设置为0 关闭垂直同步
 
-    //std::cout << "Flag:" << glfwIsCompositionEnabled() << std::endl;
+    //注册按键回调函数 设置ESCAPE关闭窗口
+    glfwSetKeyCallback(window, key_callback);  
+
 
     if (glewInit() != GLEW_OK)
     {
@@ -65,47 +69,73 @@ int main(void)
 
     std::cout << glGetString(GL_VERSION) << std::endl;
 
+    float positions[] = {
+        //位置属性             //颜色属性          //纹理坐标
+        -0.9f, -0.9f, 0.0f,  1.0f, 0.0f, 0.0f,  -1.0f, -1.0f, // 0左下
+         0.9f, -0.9f, 0.0f,  0.0f, 1.0f, 0.0f,   2.0f, -1.0f, // 1右下
+         0.9f,  0.9f, 0.0f,  0.0f, 0.0f, 1.0f,   2.0f,  2.0f, // 2右上
+        -0.9f,  0.9f, 0.0f,  0.0f, 0.0f, 0.0f,  -1.0f,  2.0f, // 3左上
+    };
+    unsigned int indices[] = {
+        0, 1, 2, // 1
+        2, 3, 0, // 2
+    };
+    //VAO(vertex Array Object)：顶点数组对象
+    //VBO(vertex Buffer Object)：顶点缓冲对象
+    //IBO(index Buffer Object)：索引缓冲对象
+    VertexArray vao; //顶点数组对象
+    VertexBuffer vbo(positions, 8 * 4 * sizeof(float));
+    VertexBufferLayout layout;
+    layout.Push<float>(3); //位置
+    layout.Push<float>(3); //颜色
+    layout.Push<float>(2); //纹理
+    vao.AddBuffer(vbo, layout);
+    
+    IndexBuffer ibo(indices, 6); //索引缓冲对象
+    Shader shader("res/shaders/Basic.shader");
+    shader.Bind(); //创建Program后绑定
+    //shader.SetUniform4f("u_Color", 0.2f, 0.3f, 0.8f, 1.0f);
+
+    // 创建并使用纹理
+    Texture texture("res/textures/BeatuyAvatar.png");
+    texture.Bind(0);
+    shader.SetUniform1i("u_Texture", 0);
+
+    // Unbind Data
+    glUseProgram(0);
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    //线框模式(Wireframe Mode)
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
     Renderer renderer;
 
-    ImGui::CreateContext();
-    ImGui::StyleColorsDark();
-
-    const char* glsl_version = "#version 150";
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init(glsl_version);
-
-    test::Test* currentTest = nullptr;
-    test::TestMenu* testMenu = new test::TestMenu(currentTest);
-    currentTest = testMenu;
-
-    testMenu->RegisterTest<test::TestClearColor>("Clear Color");
-    testMenu->RegisterTest<test::TestTexture2D>("2D Texture");
-
+    float r = 0.0f;
+    float increment = 0.05f;
+    
     while (!glfwWindowShouldClose(window))
     {
-        GLCall(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
-        renderer.Clear();
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        
+        shader.Bind(); //设置Uniform前需先绑定Shader
+        //shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);
 
-        // Start the Dear ImGui frame
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
+        vao.Bind(); //只需设置绑定VAO即可
+        
+        GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
+        renderer.Draw(vao, ibo, shader);
 
-        if (currentTest != nullptr)
-        {
-            currentTest->OnUpdate(0.0f);
-            currentTest->OnRender();
-            if (currentTest != testMenu && ImGui::Button("<-"))
-            {
-                delete currentTest;
-                currentTest = testMenu;
-            }
-            currentTest->OnImGuiRender();
-        }
+        vao.Unbind();
 
-        // Rendering
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        if (r > 1.0f)
+            increment = -0.05f;
+        else if (r < 0.05f)
+            increment = 0.05f;
+        
+        r += increment;
         
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -113,13 +143,13 @@ int main(void)
         /* Poll for and process events */
         glfwPollEvents();
     }
-
-    delete currentTest;
-    if (currentTest != testMenu)
-    {
-        delete testMenu;
-    }
-
     glfwTerminate();
     return 0;
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
+{
+    // 当用户按下ESC键,我们设置window窗口的WindowShouldClose属性为true
+    if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, GL_TRUE); // 关闭应用程序
 }

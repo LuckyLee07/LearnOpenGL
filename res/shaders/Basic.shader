@@ -8,11 +8,11 @@ layout(location = 2) in vec2 aTexCoord;
 out  vec3 ourColor;
 out  vec2 texCoord;
 
-uniform mat4 u_MVP;
+//uniform mat4 u_MVP;
 
 void main()
 {
-    gl_Position = u_MVP * vec4(aPos, 1.0);
+    gl_Position = vec4(aPos, 1.0);
     ourColor = aColor;
     texCoord = aTexCoord;
 }
@@ -23,20 +23,14 @@ void main()
 in vec3 ourColor;
 in vec2 texCoord;
 
-layout(location = 0) out vec4 color;
+out vec4 outColor;
 
-uniform vec4 u_Color;
-uniform sampler2D u_Texture; //内建采样器
-uniform sampler2D u_Texture1;
+uniform sampler2D u_Texture;
+//uniform vec4 u_Color;
 
 void main()
 {   
-    //采样纹理颜色值的函数
     vec4 texColor = texture(u_Texture, texCoord);
-    vec4 texColor1 = texture(u_Texture1, texCoord);
-    vec4 tempColor = vec4(u_Color.r, ourColor.g, u_Color.b, 1.0);
-    //color = mix(texColor, tempColor, 0.3);
-    color = mix(texColor, texColor1, 0.8);
-    color = tempColor * texColor1; //顶点颜色和纹理颜色的混合色
-    //color = vec4(ourColor, 1.0);
+    outColor = texColor * vec4(ourColor, 1.0f);
+    outColor = texColor;
 }

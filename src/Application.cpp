@@ -17,7 +17,8 @@
 #include "TestClearColor.h"
 #include "TestTexture2D.h"
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
+static float mixRatio = 0.2f;
+void processInput(GLFWwindow* window);
 
 int main(void)
 {
@@ -55,7 +56,7 @@ int main(void)
     glfwSwapInterval(1); //默认设置为0 关闭垂直同步
 
     //注册按键回调函数 设置ESCAPE关闭窗口
-    glfwSetKeyCallback(window, key_callback);  
+    //glfwSetKeyCallback(window, key_callback);  
 
 
     if (glewInit() != GLEW_OK)
@@ -71,10 +72,10 @@ int main(void)
 
     float positions[] = {
         //位置属性             //颜色属性          //纹理坐标
-        -0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  0.45f, 0.45f, // 0左下
-         0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  0.55f, 0.45f, // 1右下
-         0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  0.55f, 0.55f, // 2右上
-        -0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 0.0f,  0.45f, 0.55f, // 3左上
+        -0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f, // 0左下
+         0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, // 1右下
+         0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  1.0f, 1.0f, // 2右上
+        -0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f, // 3左上
     };
     unsigned int indices[] = {
         0, 1, 2, // 1
@@ -94,6 +95,7 @@ int main(void)
     IndexBuffer ibo(indices, 6); //索引缓冲对象
     Shader shader("res/shaders/Basic.shader");
     shader.Bind(); //创建Program后绑定
+    shader.SetUniform1f("u_ratio", mixRatio);
     shader.SetUniform4f("u_Color", 0.2f, 0.3f, 0.8f, 1.0f);
 
     // 创建并使用纹理
@@ -123,11 +125,14 @@ int main(void)
     
     while (!glfwWindowShouldClose(window))
     {
+        processInput(window); //键盘输入处理
+
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         
         shader.Bind(); //设置Uniform前需先绑定Shader
         //shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);
+        shader.SetUniform1f("u_ratio", mixRatio);
 
         vao.Bind(); //只需设置绑定VAO即可
         texture1.Active();
@@ -155,9 +160,21 @@ int main(void)
     return 0;
 }
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
+void processInput(GLFWwindow* window)
 {
-    // 当用户按下ESC键,我们设置window窗口的WindowShouldClose属性为true
-    if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    // 当用户按下ESC键时,设置window窗口的WindowShouldClose属性为true
+    if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    {
         glfwSetWindowShouldClose(window, GL_TRUE); // 关闭应用程序
+    }
+    else if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+    {
+        mixRatio += 0.005f;
+        if (mixRatio > 1.0f) mixRatio = 1.0f;
+    }
+    else if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+    {
+        mixRatio -= 0.005f;
+        if (mixRatio < 0.0f) mixRatio = 0.0f;
+    }
 }

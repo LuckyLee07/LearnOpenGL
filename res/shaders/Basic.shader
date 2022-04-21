@@ -25,12 +25,14 @@ in vec2 texCoord;
 
 out vec4 outColor;
 
-uniform sampler2D u_Texture;
+uniform sampler2D u_Texture1;
+uniform sampler2D u_Texture2;
 //uniform vec4 u_Color;
 
 void main()
 {   
-    vec4 texColor = texture(u_Texture, texCoord);
-    outColor = texColor * vec4(ourColor, 1.0f);
-    outColor = texColor;
+    vec4 texColor1 = texture(u_Texture1, texCoord);
+    vec4 texColor2 = texture(u_Texture2, texCoord);
+    //outColor = texColor1 * vec4(ourColor, 1.0f);
+    outColor = mix(texColor1, texColor2, 0.2);
 }

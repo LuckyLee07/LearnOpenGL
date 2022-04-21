@@ -71,10 +71,10 @@ int main(void)
 
     float positions[] = {
         //位置属性             //颜色属性          //纹理坐标
-        -0.9f, -0.9f, 0.0f,  1.0f, 0.0f, 0.0f,  -1.0f, -1.0f, // 0左下
-         0.9f, -0.9f, 0.0f,  0.0f, 1.0f, 0.0f,   2.0f, -1.0f, // 1右下
-         0.9f,  0.9f, 0.0f,  0.0f, 0.0f, 1.0f,   2.0f,  2.0f, // 2右上
-        -0.9f,  0.9f, 0.0f,  0.0f, 0.0f, 0.0f,  -1.0f,  2.0f, // 3左上
+        -0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f, // 0左下
+         0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, // 1右下
+         0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  1.0f, 1.0f, // 2右上
+        -0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f, // 3左上
     };
     unsigned int indices[] = {
         0, 1, 2, // 1
@@ -94,12 +94,18 @@ int main(void)
     IndexBuffer ibo(indices, 6); //索引缓冲对象
     Shader shader("res/shaders/Basic.shader");
     shader.Bind(); //创建Program后绑定
-    //shader.SetUniform4f("u_Color", 0.2f, 0.3f, 0.8f, 1.0f);
+    shader.SetUniform4f("u_Color", 0.2f, 0.3f, 0.8f, 1.0f);
 
     // 创建并使用纹理
-    Texture texture("res/textures/BeatuyAvatar.png");
-    texture.Bind(0);
-    shader.SetUniform1i("u_Texture", 0);
+    Texture texture1("res/textures/container.jpg");
+    texture1.Bind(0);
+    shader.SetUniform1i("u_Texture1", 0);
+    texture1.Unbind();
+
+    Texture texture2("res/textures/awesomeface.png");
+    texture2.Bind(1);
+    shader.SetUniform1i("u_Texture2", 1);
+    texture2.Unbind();
 
     // Unbind Data
     glUseProgram(0);
@@ -124,11 +130,13 @@ int main(void)
         //shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);
 
         vao.Bind(); //只需设置绑定VAO即可
+        texture1.Active();
+        texture2.Active();
         
-        GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
         renderer.Draw(vao, ibo, shader);
-
+        
         vao.Unbind();
+        shader.Unbind();
 
         if (r > 1.0f)
             increment = -0.05f;

@@ -35,4 +35,5 @@ void main()
     vec4 texColor2 = texture(u_Texture2, texCoord);
     //outColor = texColor1 * vec4(ourColor, 1.0f);
     outColor = mix(texColor1, texColor2, 0.2);
+    outColor = texture(u_Texture2, vec2(1.0-texCoord.x, texCoord.y));
 }

@@ -9,13 +9,9 @@
 #include "VertexArray.h"
 #include "Shader.h"
 #include "Texture.h"
+
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
-#include "Test.h"
-#include "TestClearColor.h"
-#include "TestTexture2D.h"
 
 static float mixRatio = 0.2f;
 void processInput(GLFWwindow* window);
@@ -98,6 +94,14 @@ int main(void)
     shader.SetUniform1f("u_ratio", mixRatio);
     shader.SetUniform4f("u_Color", 0.2f, 0.3f, 0.8f, 1.0f);
 
+    //**变换操作：先缩放再旋转最后位移**
+    // 将图片缩小0.5倍并逆时针旋转90度    
+    glm::mat4 transform = glm::mat4(1.0f);
+    //transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
+    //transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    //transform = glm::scale(transform, glm::vec3(0.5f, 0.5f, 0.5f));
+    shader.SetUniformMat4f("transform", transform);
+
     // 创建并使用纹理
     Texture texture1("res/textures/container.jpg");
     texture1.Bind(0);
@@ -120,7 +124,7 @@ int main(void)
 
     Renderer renderer;
 
-    float r = 0.0f;
+    float scale = 0.5f;
     float increment = 0.05f;
     
     while (!glfwWindowShouldClose(window))
@@ -131,24 +135,36 @@ int main(void)
         glClear(GL_COLOR_BUFFER_BIT);
         
         shader.Bind(); //设置Uniform前需先绑定Shader
-        //shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);
-        shader.SetUniform1f("u_ratio", mixRatio);
 
         vao.Bind(); //只需设置绑定VAO即可
         texture1.Active();
         texture2.Active();
-        
+
+        //shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);
+        shader.SetUniform1f("u_ratio", mixRatio);
+
+        glm::mat4 transform = glm::mat4(1.0f);
+        transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
+        transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+        transform = glm::scale(transform, glm::vec3(0.5f, 0.5f, 0.5f));
+        shader.SetUniformMat4f("transform", transform);
+        renderer.Draw(vao, ibo, shader);
+
+        transform = glm::mat4(1.0f); //将矩阵重置为单位矩阵
+        transform = glm::translate(transform, glm::vec3(-0.5f, 0.5f, 0.0f));
+        float scalex = static_cast<float>(abs(sin(glfwGetTime())));
+        transform = glm::scale(transform, glm::vec3(scalex, scalex, scalex));
+        shader.SetUniformMat4f("transform", transform);
         renderer.Draw(vao, ibo, shader);
         
         vao.Unbind();
         shader.Unbind();
 
-        if (r > 1.0f)
-            increment = -0.05f;
-        else if (r < 0.05f)
-            increment = 0.05f;
-        
-        r += increment;
+        if (scale > 0.5f)
+            increment = -0.005f;
+        else if (scale < 0.0f)
+            increment = 0.005f;
+        scale += increment;
         
         /* Swap front and back buffers */
         glfwSwapBuffers(window);

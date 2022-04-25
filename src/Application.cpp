@@ -13,7 +13,10 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
-static float mixRatio = 0.2f;
+float mixRatio = 0.2f;
+const unsigned int SCR_WIDTH = 800;
+const unsigned int SCR_HEIGHT = 600;
+
 void processInput(GLFWwindow* window);
 
 int main(void)
@@ -34,7 +37,7 @@ int main(void)
 #endif
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
+    window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Hello OpenGL", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -64,43 +67,80 @@ int main(void)
     glEnable(GL_BLEND); //启用混合
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+    glEnable(GL_DEPTH_TEST); //开启深度测试功能
+
     std::cout << glGetString(GL_VERSION) << std::endl;
 
-    float positions[] = {
-        //位置属性             //颜色属性          //纹理坐标
-        -0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f, // 0左下
-         0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, // 1右下
-         0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  1.0f, 1.0f, // 2右上
-        -0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f, // 3左上
+    float vertices[] = { //顶点相关数据
+        //位置属性              //纹理坐标
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
-    unsigned int indices[] = {
-        0, 1, 2, // 1
-        2, 3, 0, // 2
-    };
+
     //VAO(vertex Array Object)：顶点数组对象
     //VBO(vertex Buffer Object)：顶点缓冲对象
     //IBO(index Buffer Object)：索引缓冲对象
     VertexArray vao; //顶点数组对象
-    VertexBuffer vbo(positions, 8 * 4 * sizeof(float));
+    VertexBuffer vbo(vertices, 36 * 5 * sizeof(float));
     VertexBufferLayout layout;
     layout.Push<float>(3); //位置
-    layout.Push<float>(3); //颜色
     layout.Push<float>(2); //纹理
     vao.AddBuffer(vbo, layout);
     
-    IndexBuffer ibo(indices, 6); //索引缓冲对象
     Shader shader("res/shaders/Basic.shader");
     shader.Bind(); //创建Program后绑定
-    shader.SetUniform1f("u_ratio", mixRatio);
-    shader.SetUniform4f("u_Color", 0.2f, 0.3f, 0.8f, 1.0f);
+    
+    //设置模型矩阵/观察矩阵/投影矩阵
+    glm::mat4 model(1.0f);
+    model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    shader.SetUniformMat4f("model", model);
 
-    //**变换操作：先缩放再旋转最后位移**
-    // 将图片缩小0.5倍并逆时针旋转90度    
-    glm::mat4 transform = glm::mat4(1.0f);
-    //transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
-    //transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    //transform = glm::scale(transform, glm::vec3(0.5f, 0.5f, 0.5f));
-    shader.SetUniformMat4f("transform", transform);
+    glm::mat4 view(1.0f);
+    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+    shader.SetUniformMat4f("view", view);
+
+    glm::mat4 projection(1.0f);
+    projection = glm::perspective(45.0f, (float)SCR_WIDTH/SCR_HEIGHT, 0.1f, 100.0f);
+    shader.SetUniformMat4f("projection", projection);
 
     // 创建并使用纹理
     Texture texture1("res/textures/container.jpg");
@@ -117,54 +157,36 @@ int main(void)
     glUseProgram(0);
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     //线框模式(Wireframe Mode)
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     Renderer renderer;
 
-    float scale = 0.5f;
-    float increment = 0.05f;
-    
     while (!glfwWindowShouldClose(window))
     {
         processInput(window); //键盘输入处理
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        shader.Bind(); //设置Uniform前需先绑定Shader
-
-        vao.Bind(); //只需设置绑定VAO即可
         texture1.Active();
         texture2.Active();
 
-        //shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);
-        shader.SetUniform1f("u_ratio", mixRatio);
+        //设置Uniform前需先绑定Shader
+        shader.Bind();
 
-        glm::mat4 transform = glm::mat4(1.0f);
-        transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
-        transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
-        transform = glm::scale(transform, glm::vec3(0.5f, 0.5f, 0.5f));
-        shader.SetUniformMat4f("transform", transform);
-        renderer.Draw(vao, ibo, shader);
-
-        transform = glm::mat4(1.0f); //将矩阵重置为单位矩阵
-        transform = glm::translate(transform, glm::vec3(-0.5f, 0.5f, 0.0f));
-        float scalex = static_cast<float>(abs(sin(glfwGetTime())));
-        transform = glm::scale(transform, glm::vec3(scalex, scalex, scalex));
-        shader.SetUniformMat4f("transform", transform);
-        renderer.Draw(vao, ibo, shader);
+        glm::mat4 model(1.0f);
+        float glfwTime = (float)glfwGetTime();
+        model = glm::rotate(model, glfwTime * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+        shader.SetUniformMat4f("model", model);
+        
+        //vao.Bind(); //只需绑定VAO即可
+        renderer.Draw(vao, shader);
+        //renderer.Draw(vao, ibo, shader);
         
         vao.Unbind();
         shader.Unbind();
-
-        if (scale > 0.5f)
-            increment = -0.005f;
-        else if (scale < 0.0f)
-            increment = 0.005f;
-        scale += increment;
         
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -193,4 +215,4 @@ void processInput(GLFWwindow* window)
         mixRatio -= 0.005f;
         if (mixRatio < 0.0f) mixRatio = 0.0f;
     }
-}
+} 

@@ -116,6 +116,19 @@ int main(void)
         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
 
+    glm::vec3 cubePos[] = { //cubePos
+        glm::vec3( 0.0f,  0.0f,  0.0f), 
+        glm::vec3( 2.0f,  5.0f, -15.0f), 
+        glm::vec3(-1.5f, -2.2f, -2.5f),  
+        glm::vec3(-3.8f, -2.0f, -12.3f),  
+        glm::vec3( 2.4f, -0.4f, -3.5f),  
+        glm::vec3(-1.7f,  3.0f, -7.5f),  
+        glm::vec3( 1.3f, -2.0f, -2.5f),  
+        glm::vec3( 1.5f,  2.0f, -2.5f), 
+        glm::vec3( 1.5f,  0.2f, -1.5f), 
+        glm::vec3(-1.3f,  1.0f, -1.5f)  
+    };
+
     //VAO(vertex Array Object)：顶点数组对象
     //VBO(vertex Buffer Object)：顶点缓冲对象
     //IBO(index Buffer Object)：索引缓冲对象
@@ -131,15 +144,15 @@ int main(void)
     
     //设置模型矩阵/观察矩阵/投影矩阵
     glm::mat4 model(1.0f);
-    model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-    shader.SetUniformMat4f("model", model);
+    //model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    //shader.SetUniformMat4f("model", model);
 
     glm::mat4 view(1.0f);
     view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
     shader.SetUniformMat4f("view", view);
 
     glm::mat4 projection(1.0f);
-    projection = glm::perspective(45.0f, (float)SCR_WIDTH/SCR_HEIGHT, 0.1f, 100.0f);
+    projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH/(float)SCR_HEIGHT, 0.1f, 100.0f);
     shader.SetUniformMat4f("projection", projection);
 
     // 创建并使用纹理
@@ -176,15 +189,20 @@ int main(void)
         //设置Uniform前需先绑定Shader
         shader.Bind();
 
-        glm::mat4 model(1.0f);
-        float glfwTime = (float)glfwGetTime();
-        model = glm::rotate(model, glfwTime * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
-        shader.SetUniformMat4f("model", model);
-        
-        //vao.Bind(); //只需绑定VAO即可
-        renderer.Draw(vao, shader);
-        //renderer.Draw(vao, ibo, shader);
-        
+        for (size_t idx = 0; idx < 10; idx++)
+        {
+            glm::mat4 model(1.0f);
+            model = glm::translate(model, cubePos[idx]);
+            float angle = 20.0f * idx;
+            if (idx % 3 == 0) angle = 20.0f * glfwGetTime();
+            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+            shader.SetUniformMat4f("model", model);
+
+            //vao.Bind(); //只需绑定VAO即可
+            renderer.Draw(vao, shader);
+            //renderer.Draw(vao, ibo, shader);
+        }
+
         vao.Unbind();
         shader.Unbind();
         

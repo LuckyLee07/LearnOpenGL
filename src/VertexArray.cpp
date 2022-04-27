@@ -1,7 +1,7 @@
 #pragma warning(disable:4068)
 
 #include "VertexArray.h"
-#include "Renderer.h"
+#include "Common.h"
 #include "VertexBufferLayout.h"
 
 VertexArray::VertexArray()

@@ -2,13 +2,13 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
-#include "Renderer.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 #include "VertexBufferLayout.h"
 #include "VertexArray.h"
 #include "Shader.h"
 #include "Texture.h"
+#include "Renderer.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -174,8 +174,16 @@ int main(void)
     //线框模式(Wireframe Mode)
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-    Renderer renderer;
+    glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+    glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget);
+    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+    glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
 
+    LOG_INFO("Fx11====>>>c_direct (%.2ff, %.2ff, %.2ff)", cameraDirection.x, cameraDirection.y, cameraDirection.z);
+    LOG_INFO("Fx12====>>>c_rights (%.2ff, %.2ff, %.2ff)", cameraRight.x, cameraRight.y, cameraRight.z);
+
+    Renderer renderer;
     while (!glfwWindowShouldClose(window))
     {
         processInput(window); //键盘输入处理

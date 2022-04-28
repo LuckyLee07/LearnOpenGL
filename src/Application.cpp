@@ -16,11 +16,20 @@
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-void processInput(GLFWwindow* window);
+void processInput(GLFWwindow* window); //键盘输入处理
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
 glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f,  3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f,  0.0f);
+
+bool firstMouse = true;
+float pitch = 0.0f, yaw = -90.0f;//0度偏航角指向的是右侧X轴正方向，需设置为Z轴正方向
+float lastX = 400.0f, lastY = 300.0f;
+float fov = 45.0f; //鼠标滚动放大缩小
 
 int main(void)
 {
@@ -57,9 +66,14 @@ int main(void)
     //交换间隔表示交换缓冲区之前等待的帧数，通常称为V-Sync(垂直同步)
     glfwSwapInterval(1); //默认设置为0 关闭垂直同步
 
-    //注册按键回调函数 设置ESCAPE关闭窗口
-    //glfwSetKeyCallback(window, key_callback);  
+    //设置鼠标光标不显示
+    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
+    //注册按键回调函数 非实时调用导致卡顿因此换种实现
+    //glfwSetKeyCallback(window, keys_callback);
+    //注册鼠标回调函数 鼠标滚动/移动
+    glfwSetScrollCallback(window, scroll_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);
 
     if (glewInit() != GLEW_OK)
     {
@@ -184,12 +198,16 @@ int main(void)
         glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
         glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
 
-        LOG_INFO("Fx11====>>> C_direct (%.2ff, %.2ff, %.2ff)", cameraDirection.x, cameraDirection.y, cameraDirection.z);
-        LOG_INFO("Fx12====>>> C_rights (%.2ff, %.2ff, %.2ff)", cameraRight.x, cameraRight.y, cameraRight.z);
+        LOG_INFO("Fx11====>>> C_rights (%.2ff, %.2ff, %.2ff)", cameraRight.x, cameraRight.y, cameraRight.z);
+        LOG_INFO("Fx12====>>> C_direct (%.2ff, %.2ff, %.2ff)", cameraDirection.x, cameraDirection.y, cameraDirection.z);
     }
     Renderer renderer;
     while (!glfwWindowShouldClose(window))
     {
+        float currFrame = glfwGetTime();
+        deltaTime = currFrame - lastFrame;
+        lastFrame = currFrame;
+
         processInput(window); //键盘输入处理
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -201,12 +219,14 @@ int main(void)
         //设置Uniform前需先绑定Shader
         shader.Bind();
 
-        glm::mat4 view(1.0f);
         float radius = 10.0f;
         float camX = sin(glfwGetTime()) * radius;
         float camZ = cos(glfwGetTime()) * radius;
-        view = glm::lookAt(glm::vec3(camX, 0.0f, camZ), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
         shader.SetUniformMat4f("view", view);
+
+        projection = glm::perspective(glm::radians(fov), (float)SCR_WIDTH/(float)SCR_HEIGHT, 0.1f, 100.0f);
+        shader.SetUniformMat4f("projection", projection);
 
         for (size_t idx = 0; idx < 10; idx++)
         {
@@ -243,13 +263,58 @@ void processInput(GLFWwindow* window)
         glfwSetWindowShouldClose(window, GL_TRUE); // 关闭应用程序
     }
     
-    float cameraSpeed = 0.05f;
+    float cameraSpeed = 2.5f * deltaTime;
     if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        cameraPos += cameraFront * cameraSpeed;
+
+    if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        cameraPos -= cameraFront * cameraSpeed;
+
+    if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+
+    if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+}
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+    if (firstMouse)
     {
-        cameraPos += cameraSpeed * cameraFront;
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
     }
-    else if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-    {
-        cameraPos -= cameraSpeed * cameraFront;
-    }
-} 
+    
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos;
+    lastX = xpos, lastY = ypos;
+
+    float sensitivity = 0.05f;
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+
+    yaw     += xoffset;
+    pitch   += yoffset;
+
+    if (pitch > 89.0f)
+        pitch = 89.0f;
+    if (pitch < -89.0f)
+        pitch = -89.0f;
+    
+    glm::vec3 front;
+    //sin(0)=0.0f, cos(0)=1.0f <=> sin(90)=1.0f, cos(90)=0.0f
+    front.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw));
+    front.y = sin(glm::radians(pitch));
+    front.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
+    cameraFront = glm::normalize(front);
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    if (fov >= 1.0f && fov <= 90.0f)
+        fov -= yoffset;
+    
+    if (fov <= 1.0f) fov = 1.0f;
+    if (fov >= 90.0f) fov = 90.0f;
+}

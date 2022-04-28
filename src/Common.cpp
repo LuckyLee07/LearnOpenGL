@@ -3,6 +3,10 @@
 #include <string>
 #include <iostream>
 
+static int s_lLine_;
+static const char* s_pFile_;
+static const char* s_pFunc_;
+
 const char* gl_error_as_cstr(GLenum error)
 {
     switch (error)
@@ -26,27 +30,30 @@ void gl_check_errors(const char* call, GLenum err, const char* file, int line)
     }
 }
 
-void LOG_INFO(const char *fmt, ...)
+bool Log_Message(const char* fmt, ...)
 {
-    // 定义两个va_list 类型的变量，这种变量可以用来处理变长参数：...
-    va_list args, args1;            
+    va_list argsptr;
+    // 初始化argsptr
+    va_start(argsptr, fmt);
 
-    // 初始化args
-    va_start(args, fmt);
+    char buffer[1024];
+    vsnprintf(buffer, sizeof(buffer), fmt, argsptr);
+    va_end(argsptr);
 
-    // args1 是 args 的一个拷贝
-    va_copy(args1, args);
+    char bufferl[2048];
+    snprintf(bufferl, sizeof(bufferl), "[%s(%d)]%s(): %s", s_pFile_, s_lLine_, s_pFunc_, buffer);
 
-    // 使用nullptr和0作为前两个参数来获取格式化这个变长参数列表所需要的字符串长度
-    // 使用 string(size_t n, char c) 构造函数，构造一个长度为n的字符串，内容为n个c的拷贝
-    std::string res(1 + vsnprintf(nullptr, 0, fmt, args1), 0);
-    // args1 任务完成，将其关闭，清理。
-    va_end(args1);
+    printf("%s\n", bufferl);
 
-    // 使用args来格式化要返回的字符串res， 指定长度size
-    vsnprintf(&res[0], res.size(), fmt, args);
-    // args 任务完成，关闭，清理
-    va_end(args);
+    return true;
+}
 
-    std::cout << res << std::endl;
+void Log_SetParam(const char* pfile, const char* pfunc, int line)
+{
+    s_lLine_ = line;
+    s_pFunc_ = pfunc;
+    s_pFile_ = pfile;
+    if (pfile == NULL) s_pFile_ = "";
+    // 去掉路径截取文件信息
+    if (pfile != NULL) s_pFile_ = strrchr(pfile, '/') + 1;
 }

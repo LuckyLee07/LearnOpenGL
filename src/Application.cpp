@@ -13,11 +13,14 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
-float mixRatio = 0.2f;
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 void processInput(GLFWwindow* window);
+
+glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f,  3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f,  0.0f);
 
 int main(void)
 {
@@ -148,7 +151,8 @@ int main(void)
     //shader.SetUniformMat4f("model", model);
 
     glm::mat4 view(1.0f);
-    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+    //view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+    view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     shader.SetUniformMat4f("view", view);
 
     glm::mat4 projection(1.0f);
@@ -173,16 +177,16 @@ int main(void)
 
     //线框模式(Wireframe Mode)
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    {
+        glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+        glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+        glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget);
+        glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+        glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
 
-    glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-    glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
-    glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget);
-    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-    glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
-
-    LOG_INFO("Fx11====>>>c_direct (%.2ff, %.2ff, %.2ff)", cameraDirection.x, cameraDirection.y, cameraDirection.z);
-    LOG_INFO("Fx12====>>>c_rights (%.2ff, %.2ff, %.2ff)", cameraRight.x, cameraRight.y, cameraRight.z);
-
+        LOG_INFO("Fx11====>>> C_direct (%.2ff, %.2ff, %.2ff)", cameraDirection.x, cameraDirection.y, cameraDirection.z);
+        LOG_INFO("Fx12====>>> C_rights (%.2ff, %.2ff, %.2ff)", cameraRight.x, cameraRight.y, cameraRight.z);
+    }
     Renderer renderer;
     while (!glfwWindowShouldClose(window))
     {
@@ -197,6 +201,13 @@ int main(void)
         //设置Uniform前需先绑定Shader
         shader.Bind();
 
+        glm::mat4 view(1.0f);
+        float radius = 10.0f;
+        float camX = sin(glfwGetTime()) * radius;
+        float camZ = cos(glfwGetTime()) * radius;
+        view = glm::lookAt(glm::vec3(camX, 0.0f, camZ), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        shader.SetUniformMat4f("view", view);
+
         for (size_t idx = 0; idx < 10; idx++)
         {
             glm::mat4 model(1.0f);
@@ -205,7 +216,7 @@ int main(void)
             if (idx % 3 == 0) angle = 20.0f * glfwGetTime();
             model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
             shader.SetUniformMat4f("model", model);
-
+            
             //vao.Bind(); //只需绑定VAO即可
             renderer.Draw(vao, shader);
             //renderer.Draw(vao, ibo, shader);
@@ -231,14 +242,14 @@ void processInput(GLFWwindow* window)
     {
         glfwSetWindowShouldClose(window, GL_TRUE); // 关闭应用程序
     }
-    else if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+    
+    float cameraSpeed = 0.05f;
+    if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {
-        mixRatio += 0.005f;
-        if (mixRatio > 1.0f) mixRatio = 1.0f;
+        cameraPos += cameraSpeed * cameraFront;
     }
-    else if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+    else if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
     {
-        mixRatio -= 0.005f;
-        if (mixRatio < 0.0f) mixRatio = 0.0f;
+        cameraPos -= cameraSpeed * cameraFront;
     }
 } 

@@ -18,7 +18,6 @@ VertexArray::~VertexArray()
 void VertexArray::AddBuffer(const VertexBuffer& vb, const VertexBufferLayout& layout)
 {
     vb.Bind();
-
     unsigned int offset = 0;
     unsigned int stride = layout.GetStride();
     const auto& elements = layout.GetElements();
@@ -29,7 +28,7 @@ void VertexArray::AddBuffer(const VertexBuffer& vb, const VertexBufferLayout& la
         GLCall(glVertexAttribPointer(i, element.count, element.type, element.normalized, stride, (const void*)(intptr_t)offset));
         offset += element.count * VertexBufferElement::GetSizeOfType(element.type);
     }
-    
+    vb.Unbind();
 }
 
 void VertexArray::Bind() const

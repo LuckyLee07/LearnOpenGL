@@ -14,8 +14,6 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
-#ifdef APP_MAIN //启用新的main函数
-
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
@@ -26,10 +24,12 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera(glm::vec3(1.0f, 2.0f, 6.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
+
+glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
 int main(void)
 {
@@ -132,78 +132,42 @@ int main(void)
         -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
-
-    glm::vec3 cubePos[] = { //cubePos
-        glm::vec3( 0.0f,  0.0f,  0.0f), 
-        glm::vec3( 2.0f,  5.0f, -15.0f), 
-        glm::vec3(-1.5f, -2.2f, -2.5f),  
-        glm::vec3(-3.8f, -2.0f, -12.3f),  
-        glm::vec3( 2.4f, -0.4f, -3.5f),  
-        glm::vec3(-1.7f,  3.0f, -7.5f),  
-        glm::vec3( 1.3f, -2.0f, -2.5f),  
-        glm::vec3( 1.5f,  2.0f, -2.5f), 
-        glm::vec3( 1.5f,  0.2f, -1.5f), 
-        glm::vec3(-1.3f,  1.0f, -1.5f)  
-    };
-
-    //VAO(vertex Array Object)：顶点数组对象
-    //VBO(vertex Buffer Object)：顶点缓冲对象
-    //IBO(index Buffer Object)：索引缓冲对象
-    VertexArray vao; //顶点数组对象
-    VertexBuffer vbo(vertices, 36 * 5 * sizeof(float));
+    
+    VertexBuffer VBO(vertices, 36 * 5 * sizeof(float));
     VertexBufferLayout layout;
     layout.Push<float>(3); //位置
     layout.Push<float>(2); //纹理
-    vao.AddBuffer(vbo, layout);
+
+    VertexArray cubeVAO; //顶点数组对象    
+    cubeVAO.AddBuffer(VBO, layout);
     
+    VertexArray lampVAO; //顶点数组对象
+    lampVAO.AddBuffer(VBO, layout);
+
     Shader shader("res/shaders/Basic.shader");
     shader.Bind(); //创建Program后绑定
-    
+    shader.SetUniform3f("objectColor", 1.0f, 0.5f, 0.3f);
+    shader.SetUniform3f("lightColor", 1.0f, 1.0f, 1.0f);
+
     //设置模型矩阵/观察矩阵/投影矩阵
     glm::mat4 model(1.0f);
-    //model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-    //shader.SetUniformMat4f("model", model);
-
     glm::mat4 view(1.0f);
-    //view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-    view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    shader.SetUniformMat4f("view", view);
-
     glm::mat4 projection(1.0f);
-    projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH/(float)SCR_HEIGHT, 0.1f, 100.0f);
+
+    shader.SetUniformMat4f("model", model);
+    shader.SetUniformMat4f("view", view);
     shader.SetUniformMat4f("projection", projection);
-
-    // 创建并使用纹理
-    Texture texture1("res/textures/container.jpg");
-    texture1.Bind(0);
-    shader.SetUniform1i("u_Texture1", 0);
-    texture1.Unbind();
-
-    Texture texture2("res/textures/awesomeface.png");
-    texture2.Bind(1);
-    shader.SetUniform1i("u_Texture2", 1);
-    texture2.Unbind();
-
-    // Unbind Data
-    glUseProgram(0);
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    //线框模式(Wireframe Mode)
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    {
-        glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-        glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
-        glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget);
-        glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-        glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
-
-        LOG_INFO("Fx11====>>> C_rights (%.2ff, %.2ff, %.2ff)", cameraRight.x, cameraRight.y, cameraRight.z);
-        LOG_INFO("Fx12====>>> C_direct (%.2ff, %.2ff, %.2ff)", cameraDirection.x, cameraDirection.y, cameraDirection.z);
-    }
     
-    Renderer renderer;
+    // 光源着色器的设置
+    Shader lampShader("res/shaders/Light.shader");
+    lampShader.Bind();
 
+    lampShader.SetUniformMat4f("model", model);
+    lampShader.SetUniformMat4f("view", view);
+    lampShader.SetUniformMat4f("projection", projection);
+
+    Renderer renderer;
+    float aspect = (float)SCR_WIDTH/(float)SCR_HEIGHT;
     while (!glfwWindowShouldClose(window))
     {
         float currFrame = glfwGetTime();
@@ -214,45 +178,40 @@ int main(void)
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
-        texture1.Active();
-        texture2.Active();
+
+        model = glm::mat4(1.0f);
+        view = camera.GetViewMatrix();
+        projection = glm::perspective(glm::radians(camera.Zoom()), aspect, 0.1f, 100.0f);
+
+        lampShader.Bind();
+        model = glm::translate(model ,lightPos);
+        model = glm::scale(model, glm::vec3(0.2f)); //a smaller cube
+        lampShader.SetUniformMat4f("model", model);
+        lampShader.SetUniformMat4f("view", view);
+        lampShader.SetUniformMat4f("projection", projection);
+
+        renderer.Draw(lampVAO, lampShader);
+        lampVAO.Unbind();
+        lampShader.Unbind();
 
         //设置Uniform前需先绑定Shader
         shader.Bind();
-
-        float radius = 10.0f;
-        float camX = sin(glfwGetTime()) * radius;
-        float camZ = cos(glfwGetTime()) * radius;
-        view = camera.GetViewMatrix();
+        model = glm::mat4(1.0f);
+        shader.SetUniformMat4f("model", model);
         shader.SetUniformMat4f("view", view);
-        
-        projection = glm::perspective(glm::radians(camera.Zoom()), (float)SCR_WIDTH/(float)SCR_HEIGHT, 0.1f, 100.0f);
         shader.SetUniformMat4f("projection", projection);
 
-        for (size_t idx = 0; idx < 10; idx++)
-        {
-            glm::mat4 model(1.0f);
-            model = glm::translate(model, cubePos[idx]);
-            float angle = 20.0f * idx;
-            if (idx % 3 == 0) angle = 20.0f * glfwGetTime();
-            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-            shader.SetUniformMat4f("model", model);
-            
-            //vao.Bind(); //只需绑定VAO即可
-            renderer.Draw(vao, shader);
-            //renderer.Draw(vao, ibo, shader);
-        }
-
-        vao.Unbind();
+        renderer.Draw(cubeVAO, shader);
+        cubeVAO.Unbind();
         shader.Unbind();
-        
+
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
 
         /* Poll for and process events */
         glfwPollEvents();
     }
+
     glfwTerminate();
     return 0;
 }
@@ -278,8 +237,11 @@ void processInput(GLFWwindow* window)
         camera.ProcessKeyInput(MOVE_RIGHT, deltaTime);
 }
 
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 {
+    float xpos = static_cast<float>(xposIn);
+    float ypos = static_cast<float>(yposIn);
+
     if (firstMouse)
     {
         lastX = xpos;
@@ -294,9 +256,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
     camera.ProcessMouseMove(xoffset, yoffset);
 }
 
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+void scroll_callback(GLFWwindow* window, double xoffsetIn, double yoffsetIn)
 {
-    camera.ProcessMouseScroll(yoffset);
+    camera.ProcessMouseScroll(static_cast<float>(yoffsetIn));
 }
-
-#endif

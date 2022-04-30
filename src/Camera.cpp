@@ -42,6 +42,8 @@ void Camera::ProcessKeyInput(CameraMovement direction, float deltaTime)
 
     if(direction == MOVE_RIGHT)
         m_Position += glm::normalize(glm::cross(m_Front, m_WorldUp)) * velocity;
+    
+    //m_Position.y = 0.0f; //this one-liner keeps the user at the ground level (xz plane)
 }
 
 void Camera::ProcessMouseMove(float xoffset, float yoffset, bool canstraintsPitch)

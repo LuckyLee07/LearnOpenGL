@@ -13,6 +13,8 @@
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
@@ -24,13 +26,15 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-Camera camera(glm::vec3(1.0f, 1.5f, 6.0f), glm::vec3(0.0f, 1.0f, 0.0f), -98.0f, -17.0f);
+glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
+Camera camera(glm::vec3(1.0f, 1.5f, 5.0f), worldUp, -98.0f, -17.0f);
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
-bool stopRotate = false;
 
-//glm::vec3 lightPos(0.75f, 1.05f, 0.75f);
+bool stopRotate = false;
+bool stopMouseMove = false;
+
 glm::vec3 lightPos(1.0f, -0.5f, 2.0f);
 
 int main(void)
@@ -169,6 +173,18 @@ int main(void)
     lampShader.SetUniformMat4f("view", view);
     lampShader.SetUniformMat4f("projection", projection);
 
+    // 集成ImGui
+    ImGui::CreateContext();
+    ImGui::StyleColorsDark();
+
+    const char* glsl_version = "#version 150";
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init(glsl_version);
+
+    float ambientStrength = 0.1f;
+    float specularStrength = 0.5f;
+    int specularFactor = 32;
+
     Renderer renderer;
     float aspect = (float)SCR_WIDTH/(float)SCR_HEIGHT;
     while (!glfwWindowShouldClose(window))
@@ -176,24 +192,26 @@ int main(void)
         float glwfCurTime = static_cast<float>(glfwGetTime());
         deltaTime = glwfCurTime - lastFrame;
         lastFrame = glwfCurTime;
-
         processInput(window, deltaTime); //键盘输入处理
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // Start the Dear ImGui frame
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
 
         model = glm::mat4(1.0f);
         view = camera.GetViewMatrix();
         projection = glm::perspective(glm::radians(camera.Zoom()), aspect, 0.1f, 100.0f);
 
         lampShader.Bind();
-        float radius = 1.75f;
-        float xpos = sin(glwfCurTime) * radius;
-        float zpos = cos(glwfCurTime) * radius;
-        if (!stopRotate) //点空白键可暂停旋转
+        if (!stopRotate) //点击空白键可暂停旋转
         {
-            lightPos.x = xpos;
-            lightPos.z = zpos;
+            float radius = 1.75f;
+            lightPos.x = sin(glwfCurTime) * radius;
+            lightPos.z = cos(glwfCurTime) * radius;;
         }
         
         model = glm::translate(model, lightPos);
@@ -210,7 +228,7 @@ int main(void)
         //设置Uniform前需先绑定Shader
         shader.Bind();
         glm::vec3 viewPos = camera.m_Position;
-        shader.SetUniform3f("viewPos", viewPos.x, viewPos.y, viewPos.z);
+        //shader.SetUniform3f("viewPos", viewPos.x, viewPos.y, viewPos.z);
         shader.SetUniform3f("lightPos", lightPos.x, lightPos.y, lightPos.z);
 
         model = glm::mat4(1.0f);
@@ -221,9 +239,29 @@ int main(void)
         shader.SetUniformMat4f("view", view);
         shader.SetUniformMat4f("projection", projection);
 
+        shader.SetUniform1f("ambientStrength", ambientStrength);
+        shader.SetUniform1f("specularStrength", specularStrength);
+        shader.SetUniform1i("specularFactor", specularFactor);
+
         renderer.Draw(cubeVAO, shader);
         cubeVAO.Unbind();
         shader.Unbind();
+
+        {
+            ImGui::Begin("HelloOpenGL");// Create a window
+            ImGui::SliderFloat("ambient_strength", &ambientStrength, 0.0f, 1.0f, "ratio = %.3f");
+            ImGui::SliderFloat("specular_strength", &specularStrength, 0.0f, 1.0f, "ratio = %.3f");
+            ImGui::SliderInt("specular_factor", &specularFactor, 1, 256, "ratio = %d");
+
+            float avgFPS = 1000.0f / ImGui::GetIO().Framerate;
+            float totalFPS = ImGui::GetIO().Framerate;
+            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", avgFPS, totalFPS);
+            ImGui::End();
+        }
+
+        // Rendering
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -236,16 +274,30 @@ int main(void)
     return 0;
 }
 
+static float totalTime = 0.0f;
 void processInput(GLFWwindow* window, float delTime)
-{
+{   
+    totalTime += deltaTime;
     // 当用户按下ESC键时,设置window窗口的WindowShouldClose属性为true
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
         glfwSetWindowShouldClose(window, GL_TRUE); // 关闭应用程序
     }
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+    else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
     {
-        stopRotate = !stopRotate;
+        if (totalTime > 0.5f)
+        {
+            totalTime = 0.0f;
+            stopRotate = !stopRotate;    
+        }        
+    }
+    else if (glfwGetKey(window, GLFW_KEY_GRAVE_ACCENT) == GLFW_PRESS)
+    {
+        if (totalTime > 0.5f)
+        {
+            totalTime = 0.0f;
+            stopMouseMove = !stopMouseMove;    
+        }
     }
     
     if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
@@ -263,6 +315,8 @@ void processInput(GLFWwindow* window, float delTime)
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 {
+    if (stopMouseMove) return;
+    
     float xpos = static_cast<float>(xposIn);
     float ypos = static_cast<float>(yposIn);
 

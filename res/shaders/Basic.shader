@@ -38,6 +38,7 @@ struct Material {
     //vec3 specular;
     sampler2D diffuse;
     sampler2D specular;
+    sampler2D emission;
     float shininess;
 };
 
@@ -51,6 +52,8 @@ uniform Light light;
 uniform Material material;
 
 uniform vec3 viewPos;
+uniform float matrixlight;
+uniform float matrixmove;
 
 void main()
 {   
@@ -65,7 +68,7 @@ void main()
     float diff = max(dot(norml, lightDir), 0.0);
     vec3 diffuse = light.diffuse * (diff * vec3(texture(material.diffuse, TexCoords)));
 
-    //镜面反射计算
+    // 镜面反射计算
     //float specularStrength = 0.5;
     vec3 viewDir = normalize(viewPos - FragPos);
     vec3 reflectDir = reflect(-lightDir, norml);
@@ -74,7 +77,13 @@ void main()
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);    
     vec3 specular = light.specular * (spec * vec3(texture(material.specular, TexCoords)));
     
-    vec3 result = ambient + diffuse + specular;
+    // 放射光贴图
+    //vec3 emission = vec3(texture(material.emission, TexCoords));
+    float texcoord_y = TexCoords.y + matrixmove;
+    if (texcoord_y >= 1.0f) texcoord_y = texcoord_y - 1.0f;
+    vec3 emission = texture(material.emission, vec2(TexCoords.x, texcoord_y)).rgb;
+
+    vec3 result = ambient + diffuse + specular + emission;
     //vec3 result = (ambient + diffuse + specular) * objectColor;
 
     FragColor = vec4(result, 1.0);

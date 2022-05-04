@@ -168,11 +168,16 @@ int main(void)
     diffuseTex.Bind(0);
     shader.SetUniform1i("material.diffuse", 0);
     diffuseTex.Unbind();
-
-    Texture specularTex("res/textures/container2_specular.png");
+    //设置镜面反射贴图
+    Texture specularTex("res/textures/specular_color.png");
     specularTex.Bind(1);
     shader.SetUniform1i("material.specular", 1);
     specularTex.Unbind();
+    //设置放射光贴图(Emission Map)
+    Texture emissionTex("res/textures/emission_matrix.jpeg");
+    emissionTex.Bind(2);
+    shader.SetUniform1i("material.emission", 2);
+    emissionTex.Unbind();
 
     //设置模型矩阵/观察矩阵/投影矩阵
     glm::mat4 model(1.0f);
@@ -207,9 +212,9 @@ int main(void)
     float aspect = (float)SCR_WIDTH/(float)SCR_HEIGHT;
     while (!glfwWindowShouldClose(window))
     {   
-        float glwfCurTime = static_cast<float>(glfwGetTime());
-        deltaTime = glwfCurTime - lastFrame;
-        lastFrame = glwfCurTime;
+        float glfwCurTime = static_cast<float>(glfwGetTime());
+        deltaTime = glfwCurTime - lastFrame;
+        lastFrame = glfwCurTime;
         processInput(window, deltaTime); //键盘输入处理
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -218,8 +223,8 @@ int main(void)
         if (!stopRotate) //点击空白键可暂停旋转
         {
             float radius = 2.15f;
-            lightPos.x = sin(glwfCurTime) * radius;
-            lightPos.z = cos(glwfCurTime) * radius;;
+            lightPos.x = sin(glfwCurTime) * radius;
+            lightPos.z = cos(glfwCurTime) * radius;;
         }
 
         // Start the Dear ImGui frame
@@ -244,10 +249,14 @@ int main(void)
 
         diffuseTex.Active();
         specularTex.Active();
+        emissionTex.Active();
         //设置Uniform前需先绑定Shader
         shader.Bind();
-        glm::vec3 viewPos = camera.m_Position;
-        shader.SetUniform3f("viewPos", viewPos.x, viewPos.y, viewPos.z);
+        static float allRuntime = 0.0f;
+        allRuntime += deltaTime;
+        shader.SetUniform1f("matrixmove", (allRuntime - floor(allRuntime)));
+        
+        shader.SetUniform3f("viewPos", camera.m_Position);
         shader.SetUniform3f("light.position", lightPos);
 
         model = glm::mat4(1.0f);

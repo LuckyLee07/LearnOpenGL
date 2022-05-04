@@ -94,54 +94,55 @@ int main(void)
     std::cout << glGetString(GL_VERSION) << std::endl;
 
     float vertices[] = { //顶点相关数据
-        //位置属性Position    //法向量Normal
-       -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-        0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
-        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
-        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
-       -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
-       -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+        //位置属性Position    //法向量Normal        //纹理属性
+       -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
+        0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f,
+        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
+        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
+       -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f,
+       -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
 
-       -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-        0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-        0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-        0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-       -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-       -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+       -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
+        0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
+       -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 1.0f,
+       -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
 
-       -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-       -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-       -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-       -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-       -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-       -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+       -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+       -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
+       -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+       -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+       -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+       -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
 
-        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-        0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-        0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+        0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+        0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
 
-        0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-       -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-       -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-       -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+       -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f,
+        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
+        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
+       -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f,
+       -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
 
-       -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-        0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-       -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-       -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
+       -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
+        0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+       -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
+       -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
     };
     
-    VertexBuffer VBO(vertices, 36 * 5 * sizeof(float));
+    VertexBuffer VBO(vertices, 36 * 8 * sizeof(float));
     VertexBufferLayout layout;
     layout.Push<float>(3); //位置
     layout.Push<float>(3); //法向量
+    layout.Push<float>(2); //纹理TexCoord
 
     VertexArray cubeVAO; //顶点数组对象    
     cubeVAO.AddBuffer(VBO, layout);
@@ -152,17 +153,26 @@ int main(void)
     Shader shader("res/shaders/Basic.shader");
     shader.Bind(); //创建Program后绑定
 
-    //shader.SetUniform3f("lightColor", 1.0f, 1.0f, 1.0f);
-    //shader.SetUniform3f("objectColor", 1.0f, 0.5f, 0.3f);
     shader.SetUniform3f("light.position", lightPos);
     shader.SetUniform3f("light.ambient", glm::vec3(0.2f));
     shader.SetUniform3f("light.diffuse", glm::vec3(0.5f));
     shader.SetUniform3f("light.specular", glm::vec3(1.0f));
     
-    shader.SetUniform3f("material.ambient", 1.0f, 0.5f, 0.31f);
-    shader.SetUniform3f("material.diffuse", 1.0f, 0.5f, 0.31f);
-    shader.SetUniform3f("material.specular", 0.5f, 0.5f, 0.5f);
+    //shader.SetUniform3f("material.ambient", 1.0f, 0.5f, 0.31f);
+    //shader.SetUniform3f("material.diffuse", 1.0f, 0.5f, 0.31f);
+    //shader.SetUniform3f("material.specular", 0.5f, 0.5f, 0.5f);
     shader.SetUniform1f("material.shininess", 32.0f);
+
+    //设置漫反射贴图
+    Texture diffuseTex("res/textures/container2.png");
+    diffuseTex.Bind(0);
+    shader.SetUniform1i("material.diffuse", 0);
+    diffuseTex.Unbind();
+
+    Texture specularTex("res/textures/container2_specular.png");
+    specularTex.Bind(1);
+    shader.SetUniform1i("material.specular", 1);
+    specularTex.Unbind();
 
     //设置模型矩阵/观察矩阵/投影矩阵
     glm::mat4 model(1.0f);
@@ -221,18 +231,10 @@ int main(void)
         view = camera.GetViewMatrix();
         projection = glm::perspective(glm::radians(camera.Zoom()), aspect, 0.1f, 100.0f);
 
-        glm::vec3 lightColor;
-        lightColor.x = sin(glfwGetTime() * 2.0f);
-        lightColor.y = sin(glfwGetTime() * 0.7f);
-        lightColor.z = sin(glfwGetTime() * 1.3f);
-
         lampShader.Bind();
-        lampShader.SetUniform3f("lightColor", lightColor);
-
         model = glm::translate(model, lightPos);
         model = glm::scale(model, glm::vec3(0.2f)); //a smaller cube
         lampShader.SetUniformMat4f("model", model);
-
         lampShader.SetUniformMat4f("view", view);
         lampShader.SetUniformMat4f("projection", projection);
 
@@ -240,23 +242,18 @@ int main(void)
         lampVAO.Unbind();
         lampShader.Unbind();
 
+        diffuseTex.Active();
+        specularTex.Active();
         //设置Uniform前需先绑定Shader
         shader.Bind();
         glm::vec3 viewPos = camera.m_Position;
         shader.SetUniform3f("viewPos", viewPos.x, viewPos.y, viewPos.z);
         shader.SetUniform3f("light.position", lightPos);
 
-        glm::vec3 diffuseColor = lightColor   * glm::vec3(0.5f); // 降低影响
-        glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f); // 很低的影响
-
-        shader.SetUniform3f("light.ambient", ambientColor);
-        shader.SetUniform3f("light.diffuse", diffuseColor);
-
         model = glm::mat4(1.0f);
-        float angle = -5.f;//55.0f * glwfCurTime;
-        model = glm::rotate(model, glm::radians(angle), glm::vec3(0.0f, 1.0f, 0.0f));
+        //float angle = -5.f;//55.0f * glwfCurTime;
+        //model = glm::rotate(model, glm::radians(angle), worldUp);
         shader.SetUniformMat4f("model", model);
-
         shader.SetUniformMat4f("view", view);
         shader.SetUniformMat4f("projection", projection);
 
@@ -270,7 +267,6 @@ int main(void)
             ImGui::SliderFloat3("light_position", &lightPos.x, -5.0f, 5.0f, "%.2f");
             ImGui::SliderFloat("view_pitch", &camera.m_fPitch, -180.0f, 180.0f, "%.2f");
             ImGui::SliderFloat("view_yaw", &camera.m_fYaw, -180.0f, 180.0f, "%.2f");
-            //ImGui::SliderInt("specular_factor", &specularFactor, 1, 256, "ratio = %d");
 
             float avgFPS = 1000.0f / ImGui::GetIO().Framerate;
             float totalFPS = ImGui::GetIO().Framerate;

@@ -27,7 +27,7 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
 glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
-Camera camera(glm::vec3(1.0f, 1.5f, 5.0f), worldUp, -98.0f, -17.0f);
+Camera camera(glm::vec3(0.6f, -0.8f, 3.5f), worldUp, -106.5f, 17.2f);
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -35,8 +35,7 @@ bool firstMouse = true;
 bool stopRotate = false;
 bool stopMouseMove = false;
 
-glm::vec3 lightPos(1.0f, -0.5f, 2.0f);
-
+glm::vec3 lightPos(1.5f, 0.71f, -0.95f);
 int main(void)
 {
     std::cout << "Hello OpenGL!" << std::endl;
@@ -153,8 +152,17 @@ int main(void)
     Shader shader("res/shaders/Basic.shader");
     shader.Bind(); //创建Program后绑定
 
-    shader.SetUniform3f("objectColor", 1.0f, 0.5f, 0.3f);
-    shader.SetUniform3f("lightColor", 1.0f, 1.0f, 1.0f);
+    //shader.SetUniform3f("lightColor", 1.0f, 1.0f, 1.0f);
+    //shader.SetUniform3f("objectColor", 1.0f, 0.5f, 0.3f);
+    shader.SetUniform3f("light.position", lightPos);
+    shader.SetUniform3f("light.ambient", glm::vec3(0.2f));
+    shader.SetUniform3f("light.diffuse", glm::vec3(0.5f));
+    shader.SetUniform3f("light.specular", glm::vec3(1.0f));
+    
+    shader.SetUniform3f("material.ambient", 1.0f, 0.5f, 0.31f);
+    shader.SetUniform3f("material.diffuse", 1.0f, 0.5f, 0.31f);
+    shader.SetUniform3f("material.specular", 0.5f, 0.5f, 0.5f);
+    shader.SetUniform1f("material.shininess", 32.0f);
 
     //设置模型矩阵/观察矩阵/投影矩阵
     glm::mat4 model(1.0f);
@@ -209,7 +217,7 @@ int main(void)
         lampShader.Bind();
         if (!stopRotate) //点击空白键可暂停旋转
         {
-            float radius = 1.75f;
+            float radius = 2.15f;
             lightPos.x = sin(glwfCurTime) * radius;
             lightPos.z = cos(glwfCurTime) * radius;;
         }
@@ -228,8 +236,8 @@ int main(void)
         //设置Uniform前需先绑定Shader
         shader.Bind();
         glm::vec3 viewPos = camera.m_Position;
-        //shader.SetUniform3f("viewPos", viewPos.x, viewPos.y, viewPos.z);
-        shader.SetUniform3f("lightPos", lightPos.x, lightPos.y, lightPos.z);
+        shader.SetUniform3f("viewPos", viewPos.x, viewPos.y, viewPos.z);
+        shader.SetUniform3f("light.position", lightPos);
 
         model = glm::mat4(1.0f);
         float angle = -5.f;//55.0f * glwfCurTime;
@@ -239,19 +247,17 @@ int main(void)
         shader.SetUniformMat4f("view", view);
         shader.SetUniformMat4f("projection", projection);
 
-        shader.SetUniform1f("ambientStrength", ambientStrength);
-        shader.SetUniform1f("specularStrength", specularStrength);
-        shader.SetUniform1i("specularFactor", specularFactor);
-
         renderer.Draw(cubeVAO, shader);
         cubeVAO.Unbind();
         shader.Unbind();
 
         {
             ImGui::Begin("HelloOpenGL");// Create a window
-            ImGui::SliderFloat("ambient_strength", &ambientStrength, 0.0f, 1.0f, "ratio = %.3f");
-            ImGui::SliderFloat("specular_strength", &specularStrength, 0.0f, 1.0f, "ratio = %.3f");
-            ImGui::SliderInt("specular_factor", &specularFactor, 1, 256, "ratio = %d");
+            ImGui::SliderFloat3("view_position", &camera.m_Position.x, -10.0f, 10.0f, "%.2f");
+            ImGui::SliderFloat3("light_position", &lightPos.x, -5.0f, 5.0f, "%.2f");
+            ImGui::SliderFloat("view_pitch", &camera.m_fPitch, -180.0f, 180.0f, "%.2f");
+            ImGui::SliderFloat("view_yaw", &camera.m_fYaw, -180.0f, 180.0f, "%.2f");
+            //ImGui::SliderInt("specular_factor", &specularFactor, 1, 256, "ratio = %d");
 
             float avgFPS = 1000.0f / ImGui::GetIO().Framerate;
             float totalFPS = ImGui::GetIO().Framerate;
@@ -315,7 +321,10 @@ void processInput(GLFWwindow* window, float delTime)
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 {
-    if (stopMouseMove) return;
+    if (stopMouseMove) {
+        camera.ProcessMouseMove(0.0f, 0.0f);
+        return;
+    }
     
     float xpos = static_cast<float>(xposIn);
     float ypos = static_cast<float>(yposIn);

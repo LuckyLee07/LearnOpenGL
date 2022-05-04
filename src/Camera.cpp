@@ -1,4 +1,5 @@
 #include "Camera.h"
+#include "Common.h"
 #include "glm/gtc/matrix_transform.hpp"
 
 Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
@@ -8,6 +9,7 @@ Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
     m_WorldUp = up;
     m_fYaw = yaw;
     m_fPitch = pitch;
+    updateCameraVectors();
 }
 
 Camera::Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch)
@@ -16,6 +18,7 @@ Camera::Camera(float posX, float posY, float posZ, float upX, float upY, float u
     m_WorldUp = glm::vec3(upX, upY, upZ);
     m_fYaw = yaw;
     m_fPitch = pitch;
+    updateCameraVectors();
 }
 
 Camera::~Camera()
@@ -25,6 +28,7 @@ Camera::~Camera()
 
 glm::mat4 Camera::GetViewMatrix()
 {
+    //LOG_INFO("Fxkk====>>>Pitch=%.2ff, Yaw=%.2ff", m_fPitch, m_fYaw);
     return glm::lookAt(m_Position, m_Position + m_Front, m_WorldUp);
 }
 

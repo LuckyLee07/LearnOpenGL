@@ -17,19 +17,21 @@
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-void processInput(GLFWwindow* window); //键盘输入处理
+void processInput(GLFWwindow* window, float delTime); //键盘输入处理
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-Camera camera(glm::vec3(1.0f, 2.0f, 6.0f));
+Camera camera(glm::vec3(1.0f, 1.5f, 6.0f), glm::vec3(0.0f, 1.0f, 0.0f), -98.0f, -17.0f);
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
+bool stopRotate = false;
 
-glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+//glm::vec3 lightPos(0.75f, 1.05f, 0.75f);
+glm::vec3 lightPos(1.0f, -0.5f, 2.0f);
 
 int main(void)
 {
@@ -89,54 +91,54 @@ int main(void)
     std::cout << glGetString(GL_VERSION) << std::endl;
 
     float vertices[] = { //顶点相关数据
-        //位置属性              //纹理坐标
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+        //位置属性Position    //法向量Normal
+       -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+       -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+       -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
 
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+       -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+       -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+       -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
 
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+       -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+       -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+       -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+       -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+       -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+       -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
 
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
 
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+       -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+       -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+       -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
 
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+       -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+        0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+       -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+       -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
     };
     
     VertexBuffer VBO(vertices, 36 * 5 * sizeof(float));
     VertexBufferLayout layout;
     layout.Push<float>(3); //位置
-    layout.Push<float>(2); //纹理
+    layout.Push<float>(3); //法向量
 
     VertexArray cubeVAO; //顶点数组对象    
     cubeVAO.AddBuffer(VBO, layout);
@@ -146,6 +148,7 @@ int main(void)
 
     Shader shader("res/shaders/Basic.shader");
     shader.Bind(); //创建Program后绑定
+
     shader.SetUniform3f("objectColor", 1.0f, 0.5f, 0.3f);
     shader.SetUniform3f("lightColor", 1.0f, 1.0f, 1.0f);
 
@@ -169,12 +172,12 @@ int main(void)
     Renderer renderer;
     float aspect = (float)SCR_WIDTH/(float)SCR_HEIGHT;
     while (!glfwWindowShouldClose(window))
-    {
-        float currFrame = glfwGetTime();
-        deltaTime = currFrame - lastFrame;
-        lastFrame = currFrame;
+    {   
+        float glwfCurTime = static_cast<float>(glfwGetTime());
+        deltaTime = glwfCurTime - lastFrame;
+        lastFrame = glwfCurTime;
 
-        processInput(window); //键盘输入处理
+        processInput(window, deltaTime); //键盘输入处理
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -184,9 +187,19 @@ int main(void)
         projection = glm::perspective(glm::radians(camera.Zoom()), aspect, 0.1f, 100.0f);
 
         lampShader.Bind();
-        model = glm::translate(model ,lightPos);
+        float radius = 1.75f;
+        float xpos = sin(glwfCurTime) * radius;
+        float zpos = cos(glwfCurTime) * radius;
+        if (!stopRotate) //点空白键可暂停旋转
+        {
+            lightPos.x = xpos;
+            lightPos.z = zpos;
+        }
+        
+        model = glm::translate(model, lightPos);
         model = glm::scale(model, glm::vec3(0.2f)); //a smaller cube
         lampShader.SetUniformMat4f("model", model);
+
         lampShader.SetUniformMat4f("view", view);
         lampShader.SetUniformMat4f("projection", projection);
 
@@ -196,8 +209,15 @@ int main(void)
 
         //设置Uniform前需先绑定Shader
         shader.Bind();
+        glm::vec3 viewPos = camera.m_Position;
+        shader.SetUniform3f("viewPos", viewPos.x, viewPos.y, viewPos.z);
+        shader.SetUniform3f("lightPos", lightPos.x, lightPos.y, lightPos.z);
+
         model = glm::mat4(1.0f);
+        float angle = -5.f;//55.0f * glwfCurTime;
+        model = glm::rotate(model, glm::radians(angle), glm::vec3(0.0f, 1.0f, 0.0f));
         shader.SetUniformMat4f("model", model);
+
         shader.SetUniformMat4f("view", view);
         shader.SetUniformMat4f("projection", projection);
 
@@ -216,14 +236,18 @@ int main(void)
     return 0;
 }
 
-void processInput(GLFWwindow* window)
+void processInput(GLFWwindow* window, float delTime)
 {
     // 当用户按下ESC键时,设置window窗口的WindowShouldClose属性为true
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
         glfwSetWindowShouldClose(window, GL_TRUE); // 关闭应用程序
     }
-
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+    {
+        stopRotate = !stopRotate;
+    }
+    
     if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera.ProcessKeyInput(MOVE_FORWARD, deltaTime);
 

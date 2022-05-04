@@ -205,6 +205,13 @@ int main(void)
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        if (!stopRotate) //点击空白键可暂停旋转
+        {
+            float radius = 2.15f;
+            lightPos.x = sin(glwfCurTime) * radius;
+            lightPos.z = cos(glwfCurTime) * radius;;
+        }
+
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -214,14 +221,14 @@ int main(void)
         view = camera.GetViewMatrix();
         projection = glm::perspective(glm::radians(camera.Zoom()), aspect, 0.1f, 100.0f);
 
+        glm::vec3 lightColor;
+        lightColor.x = sin(glfwGetTime() * 2.0f);
+        lightColor.y = sin(glfwGetTime() * 0.7f);
+        lightColor.z = sin(glfwGetTime() * 1.3f);
+
         lampShader.Bind();
-        if (!stopRotate) //点击空白键可暂停旋转
-        {
-            float radius = 2.15f;
-            lightPos.x = sin(glwfCurTime) * radius;
-            lightPos.z = cos(glwfCurTime) * radius;;
-        }
-        
+        lampShader.SetUniform3f("lightColor", lightColor);
+
         model = glm::translate(model, lightPos);
         model = glm::scale(model, glm::vec3(0.2f)); //a smaller cube
         lampShader.SetUniformMat4f("model", model);
@@ -238,6 +245,12 @@ int main(void)
         glm::vec3 viewPos = camera.m_Position;
         shader.SetUniform3f("viewPos", viewPos.x, viewPos.y, viewPos.z);
         shader.SetUniform3f("light.position", lightPos);
+
+        glm::vec3 diffuseColor = lightColor   * glm::vec3(0.5f); // 降低影响
+        glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f); // 很低的影响
+
+        shader.SetUniform3f("light.ambient", ambientColor);
+        shader.SetUniform3f("light.diffuse", diffuseColor);
 
         model = glm::mat4(1.0f);
         float angle = -5.f;//55.0f * glwfCurTime;

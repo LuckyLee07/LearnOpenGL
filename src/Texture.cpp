@@ -34,13 +34,13 @@ Texture::Texture(const std::string& path)
 
 Texture::~Texture()
 {
-    GLCall(glDeleteTextures(1, &m_RenderId));
+    //GLCall(glDeleteTextures(1, &m_RenderId));
 }
 
 void Texture::Bind(unsigned int slot)
 {
     m_slot = slot;
-    GLCall(glBindTexture(GL_TEXTURE_2D, m_RenderId));
+    //GLCall(glBindTexture(GL_TEXTURE_2D, m_RenderId));
 }
 
 void Texture::Unbind() const

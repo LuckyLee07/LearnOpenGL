@@ -2,6 +2,8 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
+#ifdef APP_MAIN //启用新的main函数
+
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 #include "VertexBufferLayout.h"
@@ -170,6 +172,7 @@ int main(void)
     diffuseTex.Unbind();
     //设置镜面反射贴图
     Texture specularTex("res/textures/specular_color.png");
+    //Texture specularTex("res/textures/emission_matrix.jpeg");//有光照的地方才显示
     specularTex.Bind(1);
     shader.SetUniform1i("material.specular", 1);
     specularTex.Unbind();
@@ -365,3 +368,5 @@ void scroll_callback(GLFWwindow* window, double xoffsetIn, double yoffsetIn)
 {
     camera.ProcessMouseScroll(static_cast<float>(yoffsetIn));
 }
+
+#endif

@@ -80,7 +80,8 @@ void main()
     // 放射光贴图
     //vec3 emission = vec3(texture(material.emission, TexCoords));
     float texcoord_y = TexCoords.y + matrixmove;
-    if (texcoord_y >= 1.0f) texcoord_y = texcoord_y - 1.0f;
+    if (texcoord_y >= 1.0f) texcoord_y = texcoord_y - 1.0f; //2.0f - texcoord_y;
+    
     vec3 emission = texture(material.emission, vec2(TexCoords.x, texcoord_y)).rgb;
 
     vec3 result = ambient + diffuse + specular + emission;

@@ -84,6 +84,7 @@ ShaderSource Shader::ParseShader(const std::string& filepath)
 
     std::string line;
     std::stringstream ss[2];
+    unsigned int lineNum = 0;
     ShaderType type = ShaderType::NONE;
     while (getline(stream, line))
     {
@@ -98,9 +99,14 @@ ShaderSource Shader::ParseShader(const std::string& filepath)
         {
             ss[(int)type] << line << "\n";
         }
+        // count vertex shader's line
+        if (type == ShaderType::VERTEX) lineNum++;
     }
 
-    return { ss[0].str(), ss[1].str() };
+    std::stringstream spaceLines; 
+    for (size_t i = 0; i <= lineNum; i++) spaceLines << "\n";
+
+    return { ss[0].str(), spaceLines.str()+ss[1].str() };
 }
 
 unsigned int Shader::CompileShader(unsigned int type, const std::string& source)

@@ -2,6 +2,8 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
+#ifdef APP_MAIN //启用新的main函数
+
 #include "Shader.h"
 #include "Camera.h"
 #include "Model.h"
@@ -222,3 +224,5 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	camera.ProcessMouseScroll(static_cast<float>(yoffset));
 }
+
+#endif

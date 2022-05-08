@@ -2,7 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
-#ifdef APP_MAIN //启用新的main函数
+//#ifdef APP_MAIN //启用新的main函数
 
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
@@ -139,6 +139,19 @@ int main(void)
        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
     };
+
+    glm::vec3 cubePos[] = { //cubePos
+        glm::vec3( 0.0f,  0.0f,  0.0f), 
+        glm::vec3( 2.0f,  5.0f, -15.0f), 
+        glm::vec3(-1.5f, -2.2f, -2.5f),  
+        glm::vec3(-3.8f, -2.0f, -12.3f),  
+        glm::vec3( 2.4f, -0.4f, -3.5f),  
+        glm::vec3(-1.7f,  3.0f, -7.5f),  
+        glm::vec3( 1.3f, -2.0f, -2.5f),  
+        glm::vec3( 1.5f,  2.0f, -2.5f), 
+        glm::vec3( 1.5f,  0.2f, -1.5f), 
+        glm::vec3(-1.3f,  1.0f, -1.5f)  
+    };
     
     VertexBuffer VBO(vertices, 36 * 8 * sizeof(float));
     VertexBufferLayout layout;
@@ -159,6 +172,10 @@ int main(void)
     shader.SetUniform3f("light.ambient", glm::vec3(0.2f));
     shader.SetUniform3f("light.diffuse", glm::vec3(0.5f));
     shader.SetUniform3f("light.specular", glm::vec3(1.0f));
+
+    shader.SetUniform1f("light.constant", 1.0f);
+    shader.SetUniform1f("light.linear", 0.09f);
+    shader.SetUniform1f("light.quadratic", 0.032f);
     
     //shader.SetUniform3f("material.ambient", 1.0f, 0.5f, 0.31f);
     //shader.SetUniform3f("material.diffuse", 1.0f, 0.5f, 0.31f);
@@ -223,17 +240,17 @@ int main(void)
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        if (!stopRotate) //点击空白键可暂停旋转
-        {
-            float radius = 2.15f;
-            lightPos.x = sin(glfwCurTime) * radius;
-            lightPos.z = cos(glfwCurTime) * radius;;
-        }
-
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+
+        if (!stopRotate) //点击空白键可暂停旋转
+        {
+            float radius = 4.5f;
+            //lightPos.x = sin(glfwCurTime) * radius;
+            //lightPos.z = cos(glfwCurTime) * radius;;
+        }
 
         model = glm::mat4(1.0f);
         view = camera.GetViewMatrix();
@@ -260,7 +277,10 @@ int main(void)
         shader.SetUniform1f("matrixmove", (allRuntime - floor(allRuntime)));
         
         shader.SetUniform3f("viewPos", camera.m_Position);
-        shader.SetUniform3f("light.position", lightPos);
+        shader.SetUniform3f("light.position", camera.m_Position);
+        shader.SetUniform3f("light.direction", camera.m_Front);
+        shader.SetUniform1f("light.cutOff", glm::cos(glm::radians(12.5f)));
+        shader.SetUniform1f("light.outerCutOff", glm::cos(glm::radians(17.5f)));
 
         model = glm::mat4(1.0f);
         //float angle = -5.f;//55.0f * glwfCurTime;
@@ -269,11 +289,22 @@ int main(void)
         shader.SetUniformMat4f("view", view);
         shader.SetUniformMat4f("projection", projection);
 
-        renderer.Draw(cubeVAO, shader);
+        for (size_t idx = 0; idx < 10; idx++)
+        {
+            glm::mat4 model(1.0f);
+            model = glm::translate(model, cubePos[idx]);
+            float angle = 20.0f * idx;
+            //if (idx % 3 == 0) angle = 20.0f * glfwGetTime();
+            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+            shader.SetUniformMat4f("model", model);
+            
+            //cubeVAO.Bind(); //只需绑定VAO即可
+            renderer.Draw(cubeVAO, shader);
+        }
         cubeVAO.Unbind();
         shader.Unbind();
 
-        {
+        {   // ImGUI Setting
             ImGui::Begin("HelloOpenGL");// Create a window
             ImGui::SliderFloat3("view_position", &camera.m_Position.x, -10.0f, 10.0f, "%.2f");
             ImGui::SliderFloat3("light_position", &lightPos.x, -5.0f, 5.0f, "%.2f");
@@ -369,4 +400,4 @@ void scroll_callback(GLFWwindow* window, double xoffsetIn, double yoffsetIn)
     camera.ProcessMouseScroll(static_cast<float>(yoffsetIn));
 }
 
-#endif
+//#endif

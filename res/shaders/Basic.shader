@@ -29,9 +29,17 @@ void main()
 
 struct Light {
     vec3 position;
+    vec3 direction;
+    float cutOff;
+    float outerCutOff;
+
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
+
+    float constant;
+    float linear;
+    float quadratic;
 };
 struct Material {
     //vec3 diffuse;
@@ -78,13 +86,30 @@ void main()
     vec3 specular = light.specular * (spec * vec3(texture(material.specular, TexCoords)));
     
     // 放射光贴图
-    //vec3 emission = vec3(texture(material.emission, TexCoords));
+    vec3 emission = vec3(texture(material.emission, TexCoords));
     float texcoord_y = TexCoords.y + matrixmove;
     if (texcoord_y >= 1.0f) texcoord_y = texcoord_y - 1.0f; //2.0f - texcoord_y;
-    
-    vec3 emission = texture(material.emission, vec2(TexCoords.x, texcoord_y)).rgb;
+    //vec3 emission = texture(material.emission, vec2(TexCoords.x, texcoord_y)).rgb;
 
-    vec3 result = ambient + diffuse + specular + emission;
+    // 点光源衰减计算
+    float distance = length(light.position - FragPos);
+    float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
+    ambient *= attenuation; diffuse *= attenuation; specular *= attenuation;
+
+    // 手电筒聚光度计算
+    vec3 result;
+    float theta = dot(lightDir, normalize(-light.direction));
+    if(theta > light.cutOff) //用的是cos所有取大于号
+        result = ambient + diffuse + specular;
+    else
+        result = ambient; //只有环境光分量
+     
+    // 平滑/柔化边缘处理
+    float epsilon = light.cutOff - light.outerCutOff;
+    float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
+    diffuse *= intensity; specular *= intensity; // 不对环境光处理 让其始终能发一点光
+
+    result = ambient + diffuse + specular;// + emission;
     //vec3 result = (ambient + diffuse + specular) * objectColor;
 
     FragColor = vec4(result, 1.0);

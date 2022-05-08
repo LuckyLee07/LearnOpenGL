@@ -16,7 +16,7 @@ private:
 
 public:
     Texture() {}
-    Texture(const std::string& path, const char* cType);
+    Texture(const std::string& path, const char* cType=nullptr);
     ~Texture();
 
     void Bind(unsigned int slot = 0);

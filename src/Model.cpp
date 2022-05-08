@@ -1,6 +1,6 @@
 #include "Model.h"
 #include "Common.h"
-#include "FileManager.h"
+//#include "FileManager.h"
 
 #include "assimp/Importer.hpp"
 #include "assimp/postprocess.h"
@@ -12,7 +12,7 @@ Model::Model(const char* filePath)
 	this->loadModel(filePath);
 }
 
-void Model::Draw(Shader shader)
+void Model::Draw(Shader& shader)
 {
 	for (uint ii = 0; ii < m_Meshes.size(); ii++)
 	{
@@ -23,7 +23,7 @@ void Model::Draw(Shader shader)
 void Model::loadModel(const std::string& filePath)
 {
 	Assimp::Importer importer;
-	const aiScene *pScene = importer.ReadFile(filePath, aiProcess_Triangulate | aiProcess_FlipUVs);
+	const aiScene *pScene = importer.ReadFile(filePath, aiProcess_Triangulate);
 
 	if (pScene == NULL || pScene->mFlags&AI_SCENE_FLAGS_INCOMPLETE || pScene->mRootNode == NULL)
 	{
@@ -109,12 +109,12 @@ Mesh Model::processMesh(aiMesh *pMesh, const aiScene *pScene)
 		std::size_t findPos = m_filePath.rfind(".");
 		std::string filePath = m_filePath.replace(findPos+1, 3, "png");
 
-		if (FileAutoClose::isFileExist(filePath.c_str()))
+		//if (FileAutoClose::isFileExist(filePath.c_str()))
 		{
 			Texture texture(filePath.c_str(), "texture_diffuse");
 			textures.push_back(texture);
 		}
-		else
+        //else
 		{
 			LOG_INFO("Fxkk====>>>File not found:%s", filePath.c_str());
 		}

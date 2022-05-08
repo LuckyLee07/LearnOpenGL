@@ -15,6 +15,10 @@ set(GLEW_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/GLEW)
 include_directories(${GLEW_DIR}/include)
 link_libraries(${GLEW_DIR}/lib/libGLEW.2.2.0.dylib)
 
+# Assimp : brew install assimp
+include_directories(/opt/homebrew/include)
+link_libraries(/opt/homebrew/lib/libassimp.5.2.0.dylib)
+
 #SET(CMAKE_BUILD_TYPE "Debug")  
 #SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g2 -ggdb")  
 #SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")

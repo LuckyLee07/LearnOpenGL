@@ -13,10 +13,10 @@ class Model
 private:
 	std::string m_filePath;
 	std::vector<Mesh> m_Meshes;
-    
+
 public:
 	Model(const char* filePath);
-	void Draw(Shader shader);
+	void Draw(Shader& shader);
 
 private:
 	void loadModel(const std::string& filePath);

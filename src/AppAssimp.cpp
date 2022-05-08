@@ -9,8 +9,6 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
-#include "FileManager.h"
-
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
@@ -29,6 +27,7 @@ float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
 bool stopMouseMove = false;
+bool stopSelfRotate = false;
 
 int main(void)
 {
@@ -88,7 +87,7 @@ int main(void)
 
 	std::cout << glGetString(GL_VERSION) << std::endl;
 	
-	Shader shader("res/shaders/Basic.shader");
+	Shader shader("res/shaders/Model.shader");
 	Model ourModel("res/nanosuit/nanosuit.obj");
 	//Model ourModel("res/miniw/cloudportal.obj");
 
@@ -109,7 +108,7 @@ int main(void)
 
 		shader.Bind(); //设置Uniform前需先绑定Shader
 		
-		glm::mat4 projection = glm::perspective(glm::radians(camera.GetZoom()), aspect, 0.1f, 100.0f);
+		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom()), aspect, 0.1f, 100.0f);
 		shader.SetUniformMat4f("projection", projection);
 
 		glm::mat4 view = camera.GetViewMatrix();
@@ -118,7 +117,7 @@ int main(void)
 		glm::mat4 model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
 		model = glm::rotate(model, glm::radians(35.0f), glm::vec3(1.0f, 1.0f, 0.0f));
-		model = glm::scale(model, glm::vec3(0.1f));
+		model = glm::scale(model, glm::vec3(0.15f));
 		shader.SetUniformMat4f("model", model);
 
 		ourModel.Draw(shader); //绘制模型
@@ -130,7 +129,7 @@ int main(void)
 		glfwPollEvents();
 	}
 	glfwTerminate();
-    
+
 	return 0;
 }
 
@@ -149,7 +148,7 @@ void processInput(GLFWwindow *window, float deltaTime)
         if (totalTime > 0.5f)
         {
             totalTime = 0.0f;
-            stopRotate = !stopRotate;    
+            stopSelfRotate = !stopSelfRotate;    
         }        
     }
     else if (glfwGetKey(window, GLFW_KEY_GRAVE_ACCENT) == GLFW_PRESS)
@@ -162,13 +161,13 @@ void processInput(GLFWwindow *window, float deltaTime)
     }
 
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		camera.ProcessKeyboard(MOVE_FORWARD, deltaTime);
+		camera.ProcessKeyInput(MOVE_FORWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		camera.ProcessKeyboard(MOVE_BACKWARD, deltaTime);
+		camera.ProcessKeyInput(MOVE_BACKWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		camera.ProcessKeyboard(MOVE_LEFT, deltaTime);
+		camera.ProcessKeyInput(MOVE_LEFT, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		camera.ProcessKeyboard(MOVE_RIGHT, deltaTime);
+		camera.ProcessKeyInput(MOVE_RIGHT, deltaTime);
 }
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)

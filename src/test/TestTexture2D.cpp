@@ -38,7 +38,7 @@ namespace test
         m_Shader->SetUniform4f("u_Color", 0.2f, 0.3f, 0.8f, 1.0f);
 
         // 纹理Texture相关
-        m_Texture = std::make_unique<Texture>("res/textures/BeatuyAvatar.png");
+        m_Texture = nullptr;//std::make_unique<Texture>("res/textures/BeatuyAvatar.png");
         m_Texture->Bind(0);
         m_Shader->SetUniform1i("u_Texture1", 0);
         

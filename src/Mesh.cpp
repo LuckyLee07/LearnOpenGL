@@ -16,12 +16,15 @@ Mesh::Mesh(vector<VertexData> vertices, vector<uint> indices, vector<Texture> te
 	this->setupMesh();
 }
 
-void Mesh::Draw(Shader shader)
+void Mesh::Draw(Shader& shader)
 {
-	uint diffuseNr = 1, specularNr = 1;
+    glBindVertexArray(m_VAO);
+
+	uint diffuseNr = 1, specularNr = 1, texCnt = 0;
 	for (uint idx = 0; idx < m_Textures.size(); idx++)
 	{
 		m_Textures[idx].Bind(idx);//设置纹理单元槽
+
 		std::string texNumber;
 		std::string cType = m_Textures[idx].GetType();
 		if (cType == "texture_diffuse")
@@ -29,10 +32,11 @@ void Mesh::Draw(Shader shader)
 		else if (cType == "texture_specular")
 			texNumber = std::to_string(specularNr++);
 		if (texNumber.empty()) continue;
-		shader.SetUniform1i(cType + texNumber, idx);
+
+		shader.SetUniform1i(cType + texNumber, texCnt++);
 		m_Textures[idx].Active(); //激活纹理单元
 	}
-	glBindVertexArray(m_VAO);
+	
 	glDrawElements(GL_TRIANGLES, m_Indices.size(), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 }

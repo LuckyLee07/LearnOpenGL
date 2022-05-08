@@ -27,7 +27,7 @@ public:
 public:
 	Mesh(vector<VertexData> vertices, vector<uint> indices, vector<Texture> textures);
 
-	void Draw(Shader shader);
+	void Draw(Shader& shader);
 
 private:
 	uint m_VAO, m_VBO, m_IBO;

@@ -2,6 +2,7 @@
 #define __TEXTURE_H__
 
 #include <string>
+#include "Common.h"
 
 class Texture
 {
@@ -11,8 +12,11 @@ private:
     unsigned char* m_LocalBuffer;
     int m_Width, m_Height, m_BPP;
     unsigned int m_slot;
+    std::string m_type;
+
 public:
-    Texture(const std::string& path);
+    Texture() {}
+    Texture(const std::string& path, const char* cType);
     ~Texture();
 
     void Bind(unsigned int slot = 0);
@@ -21,6 +25,8 @@ public:
 
     inline int GetWidth() const { return m_Width; }
     inline int GetHeight() const { return m_Height; }
+
+    const char* GetType() { return m_type.c_str(); }
 };
 
 #endif

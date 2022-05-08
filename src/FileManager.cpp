@@ -15,13 +15,11 @@
 #define O_BINARY (0)
 #endif
 
+int g_openfiles = 0;
+
 #ifdef _WIN32
 const int CREATE_PMODE = S_IREAD | S_IWRITE;
-#else
-const int CREATE_PMODE = S_IRWXU | S_IRWXG | S_IRWXO;
-#endif
 
-int g_openfiles = 0;
 FileAutoClose::FileAutoClose(const std::string &path, int flags)
 {
 	m_FP = _open(path.c_str(), flags, CREATE_PMODE);
@@ -64,7 +62,7 @@ FileAutoClose::FileAutoClose(const char *path, int flags)
 }
 FileAutoClose::~FileAutoClose()
 {
-	close();
+	this->fclose();
 }
 
 bool FileAutoClose::sync()
@@ -77,7 +75,7 @@ bool FileAutoClose::sync()
 	return false;
 }
 
-void FileAutoClose::close()
+void FileAutoClose::fclose()
 {
 	if(m_FP >= 0)
 	{
@@ -93,7 +91,7 @@ bool FileAutoClose::isNull()
 	return m_FP<0;
 }
 
-bool FileAutoClose::read(void *buf, int nbytes)
+bool FileAutoClose::fread(void *buf, int nbytes)
 {
 	int n;
 	if((n=_read(m_FP, buf, nbytes)) == nbytes) return true;
@@ -108,7 +106,7 @@ bool FileAutoClose::read(void *buf, int nbytes)
 	}
 }
 
-bool FileAutoClose::write(const void *buf, int nbytes)
+bool FileAutoClose::fwrite(const void *buf, int nbytes)
 {
 	int n;
 	if((n=_write(m_FP, buf, nbytes)) == nbytes) return true;
@@ -162,10 +160,162 @@ void *ReadWholeFile(const char *path, int &datalen)
 	if(buf == NULL) return NULL;
 
 	fp.seek(0, SEEK_SET);
-	if(!fp.read(buf, datalen))
+	if(!fp.fread(buf, datalen))
 	{
 		free(buf);
 		return NULL;
 	}
 	return buf;
 }
+#else
+const int CREATE_PMODE = S_IRWXU | S_IRWXG | S_IRWXO;
+
+FileAutoClose::FileAutoClose(const std::string &path, int flags)
+{
+	m_FP = open(path.c_str(), flags, CREATE_PMODE);
+	if(m_FP < 0)
+	{
+		int err = errno;
+		if(err != 2)
+		{
+			err = err;
+		}
+	}
+	else
+	{
+		g_openfiles++;
+		if(g_openfiles > 8)
+		{
+			int aaa = 0;
+		}
+	}
+}
+FileAutoClose::FileAutoClose(const char *path, int flags)
+{
+	m_FP = open(path, flags, CREATE_PMODE);
+	if(m_FP < 0)
+	{
+		int err = errno;
+		if(err != 2)
+		{
+			err = err;
+		}
+	}
+	else
+	{
+		g_openfiles++;
+		if(g_openfiles > 8)
+		{
+			int aaa = 0;
+		}
+	}
+}
+FileAutoClose::~FileAutoClose()
+{
+	this->fclose();
+}
+
+bool FileAutoClose::sync()
+{
+	if(m_FP >= 0)
+	{
+		//if(DirVisitor::syncFile(m_FP)) return true;
+	}
+	
+	return false;
+}
+
+void FileAutoClose::fclose()
+{
+	if(m_FP >= 0)
+	{
+		::close(m_FP);
+		m_FP = -1;
+
+		g_openfiles--;
+	}
+}
+
+bool FileAutoClose::isNull()
+{
+	return m_FP<0;
+}
+
+bool FileAutoClose::fread(void *buf, int nbytes)
+{
+	int n;
+	if((n=::read(m_FP, buf, nbytes)) == nbytes) return true;
+	else
+	{
+		int err = errno;
+		if(err != 2)
+		{
+			err = err;
+		}
+		return false;
+	}
+}
+
+bool FileAutoClose::fwrite(const void *buf, int nbytes)
+{
+	int n;
+	if((n=::write(m_FP, buf, nbytes)) == nbytes) return true;
+	else
+	{
+		int err = errno;
+		return false;
+	}
+}
+
+int FileAutoClose::fileSize()
+{
+	int s = lseek(m_FP, 0, SEEK_END);
+	if(s < 0) return 0;
+	else return s;
+}
+
+int FileAutoClose::tell()
+{
+	return lseek(m_FP, 0, SEEK_CUR);
+}
+
+bool FileAutoClose::seek(int offset, int pos)
+{
+	if(lseek(m_FP, offset, pos) >= 0) return true;
+	else
+	{
+		int err = errno;
+		return false;
+	}
+}
+
+bool FileAutoClose::isFileExist(const char *path)
+{
+	return access(path, 0) == 0;
+}
+
+void *ReadWholeFile(const char *path, int &datalen)
+{
+	std::string fullpath(path);
+
+	FileAutoClose fp(fullpath, O_RDONLY|O_BINARY);
+	if (fp.isNull())
+		return NULL;
+		
+
+	datalen = fp.fileSize();
+	if(datalen == 0) return NULL;
+
+	void *buf = malloc(datalen);
+	if(buf == NULL) return NULL;
+
+	fp.seek(0, SEEK_SET);
+	if(!fp.fread(buf, datalen))
+	{
+		free(buf);
+		return NULL;
+	}
+	return buf;
+}
+
+#endif

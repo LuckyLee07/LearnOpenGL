@@ -13,10 +13,10 @@ public:
 	~FileAutoClose();
 
 	bool sync();
-	void close();
+	void fclose();
 	bool isNull();
-	bool read(void *buf, int nbytes);
-	bool write(const void *buf, int nbytes);
+	bool fread(void *buf, int nbytes);
+	bool fwrite(const void *buf, int nbytes);
 	int fileSize();
 	int tell();
 	bool seek(int offset, int pos);

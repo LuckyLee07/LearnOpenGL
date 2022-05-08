@@ -29,6 +29,8 @@ bool firstMouse = true;
 bool stopMouseMove = false;
 bool stopSelfRotate = false;
 
+glm::vec3 lightPos(2.5f, 1.5f, 0.0f);
+
 int main(void)
 {
 	std::cout << "Hello OpenGL!" << std::endl;
@@ -88,8 +90,17 @@ int main(void)
 	std::cout << glGetString(GL_VERSION) << std::endl;
 	
 	Shader shader("res/shaders/Model.shader");
+    shader.Bind(); //创建Program后绑定
+
+    shader.SetUniform3f("light.position", lightPos);
+    shader.SetUniform3f("light.ambient", glm::vec3(0.3f));
+    shader.SetUniform3f("light.diffuse", glm::vec3(0.5f));
+    shader.SetUniform3f("light.specular", glm::vec3(0.8f));
+    
 	Model ourModel("res/nanosuit/nanosuit.obj");
 	//Model ourModel("res/miniw/cloudportal.obj");
+
+    shader.Unbind();
 
 	//线框模式(Wireframe Mode)
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -97,14 +108,21 @@ int main(void)
 	float aspect = (float)SCR_WIDTH / (float)SCR_HEIGHT;
 	while (!glfwWindowShouldClose(window))
 	{
-		float currentFrame = static_cast<float>(glfwGetTime());
-		deltaTime = currentFrame - lastFrame;
-		lastFrame = currentFrame;
+		float glfwCurTime = static_cast<float>(glfwGetTime());
+		deltaTime = glfwCurTime - lastFrame;
+		lastFrame = glfwCurTime;
 
 		processInput(window, deltaTime);
 
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        if (!stopSelfRotate) //点击空白键可暂停旋转
+        {
+            float radius = 2.15f;
+            lightPos.x = sin(glfwCurTime) * radius;
+            lightPos.z = cos(glfwCurTime) * radius;;
+        }
 
 		shader.Bind(); //设置Uniform前需先绑定Shader
 		
@@ -120,7 +138,12 @@ int main(void)
 		model = glm::scale(model, glm::vec3(0.15f));
 		shader.SetUniformMat4f("model", model);
 
+        shader.SetUniform3f("viewPos", camera.m_Position);
+        shader.SetUniform3f("light.position", lightPos);
+
 		ourModel.Draw(shader); //绘制模型
+
+        shader.Unbind();
 
 		/* Swap front and back buffers */
 		glfwSwapBuffers(window);

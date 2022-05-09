@@ -2,7 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
-//#ifdef APP_MAIN //启用新的main函数
+#ifdef APP_MAIN //启用新的main函数
 
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
@@ -410,4 +410,4 @@ void scroll_callback(GLFWwindow* window, double xoffsetIn, double yoffsetIn)
     camera.ProcessMouseScroll(static_cast<float>(yoffsetIn));
 }
 
-//#endif
+#endif

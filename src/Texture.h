@@ -16,8 +16,13 @@ private:
 
 public:
     Texture() {}
+    Texture(const std::string& path, int slot);
     Texture(const std::string& path, const char* cType=nullptr);
+
     ~Texture();
+
+    void Delete(); //Texture是uniform不能直接删
+    bool InitTexture(const std::string& path);
 
     void Bind(unsigned int slot = 0);
     void Unbind() const;
@@ -27,6 +32,9 @@ public:
     inline int GetHeight() const { return m_Height; }
 
     const char* GetType() { return m_type.c_str(); }
+
+    void SetSlot(unsigned int slot) { m_slot = slot; }
+    inline unsigned int GetSlot() const { return m_slot; }
 };
 
 #endif

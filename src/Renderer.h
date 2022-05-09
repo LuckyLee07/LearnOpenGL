@@ -9,7 +9,7 @@ class Renderer
 {
 public:
     void Clear();
-    void Draw(const VertexArray& vao, const Shader& shader);
+    void Draw(const VertexArray& vao, const Shader& shader, unsigned int count = 36);
     void Draw(const VertexArray& vao, const IndexBuffer& ibo, const Shader& shader);
 };
 

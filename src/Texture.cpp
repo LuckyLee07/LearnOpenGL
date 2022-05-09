@@ -2,20 +2,42 @@
 #include <iostream>
 #include "stb_image/stb_image.h"
 
+Texture::Texture(const std::string& path, int slot)
+    : m_RenderId(0), m_FilePath(path), m_LocalBuffer(nullptr),
+    m_Width(0), m_Height(0), m_BPP(0)
+{   
+    m_slot = slot;
+    if (!this->InitTexture(path))
+    {
+        LOG_INFO("Texture failed do init ===>> %s", path.c_str());
+    }
+}
+
 Texture::Texture(const std::string& path, const char* cType)
     : m_RenderId(0), m_FilePath(path), m_LocalBuffer(nullptr),
     m_Width(0), m_Height(0), m_BPP(0), m_slot(0)
 {
     if (cType != nullptr) m_type = cType;
-    
+
+    if (!this->InitTexture(path))
+    {
+        LOG_INFO("Texture failed to init ===>> %s", path.c_str());
+    }
+}
+
+bool Texture::InitTexture(const std::string& path)
+{
     stbi_set_flip_vertically_on_load(true); //设置翻转
     m_LocalBuffer = stbi_load(path.c_str(), &m_Width, &m_Height, &m_BPP, 0);
-    
+
     if (m_LocalBuffer == nullptr)
     {
-        LOG_INFO("Load texture failed ===>> %s", path.c_str());
-        ASSERT(m_LocalBuffer != nullptr);    
+        LOG_INFO("Load Texture failed ===>> %s", path.c_str());
+        ASSERT(m_LocalBuffer != nullptr);
+        return false;
     }
+
+    m_FilePath = path.c_str();
 
     GLenum format = GL_RGB;
     if (m_BPP == 1)
@@ -43,11 +65,17 @@ Texture::Texture(const std::string& path, const char* cType)
     GLCall(glGenerateMipmap(GL_TEXTURE_2D));
     
     if (m_LocalBuffer) stbi_image_free(m_LocalBuffer);
+    return true;
 }
 
 Texture::~Texture()
 {
-    //GLCall(glDeleteTextures(1, &m_RenderId));
+    //this->Delete();
+}
+
+void Texture::Delete()
+{
+    GLCall(glDeleteTextures(1, &m_RenderId));
 }
 
 void Texture::Bind(unsigned int slot)

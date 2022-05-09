@@ -57,3 +57,16 @@ void Log_SetParam(const char* pfile, const char* pfunc, int line)
     // 去掉路径截取文件信息
     if (pfile != NULL) s_pFile_ = strrchr(pfile, '/') + 1;
 }
+
+const char* g_FormatStr(const char *fmt, ...)
+{
+    va_list argsptr;
+    // 初始化argsptr
+    va_start(argsptr, fmt);
+
+    memset(s_format, '\0', sizeof(s_format));
+    vsnprintf(s_format, sizeof(s_format), fmt, argsptr);
+    va_end(argsptr);
+
+    return s_format;
+}

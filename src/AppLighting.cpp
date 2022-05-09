@@ -153,6 +153,13 @@ int main(void)
         glm::vec3(-1.3f,  1.0f, -1.5f)  
     };
     
+    glm::vec3 pointLightsPos[] = {
+        glm::vec3( 0.7f,  0.2f,  2.0f),
+        glm::vec3( 2.3f, -3.3f, -4.0f),
+        glm::vec3(-4.0f,  2.0f, -12.0f),
+        glm::vec3( 0.0f,  0.0f, -3.0f)
+    };
+
     VertexBuffer VBO(vertices, 36 * 8 * sizeof(float));
     VertexBufferLayout layout;
     layout.Push<float>(3); //位置
@@ -168,53 +175,60 @@ int main(void)
     Shader shader("res/shaders/Basic.shader");
     shader.Bind(); //创建Program后绑定
 
-    shader.SetUniform3f("light.position", lightPos);
-    shader.SetUniform3f("light.ambient", glm::vec3(0.2f));
-    shader.SetUniform3f("light.diffuse", glm::vec3(0.5f));
-    shader.SetUniform3f("light.specular", glm::vec3(1.0f));
+    // 定向光属性设置
+    shader.SetUniform3f("dirLight.direction", -0.2f, -1.0f, -0.3f);
+    shader.SetUniform3f("dirLight.ambient", glm::vec3(0.05f));
+    shader.SetUniform3f("dirLight.diffuse", glm::vec3(0.4f));
+    shader.SetUniform3f("dirLight.specular", glm::vec3(0.5f));
 
-    shader.SetUniform1f("light.constant", 1.0f);
-    shader.SetUniform1f("light.linear", 0.09f);
-    shader.SetUniform1f("light.quadratic", 0.032f);
+    // 点光源属性设置
+    size_t lightCount = sizeof(pointLightsPos) / sizeof(glm::vec3);
+    for (size_t i = 0; i < lightCount; i++)
+    {
+        shader.SetUniform3f(g_FormatStr("pointLights[%d].position",i), pointLightsPos[i]);
+        shader.SetUniform3f(g_FormatStr("pointLights[%d].ambient",i), glm::vec3(0.05f));
+        shader.SetUniform3f(g_FormatStr("pointLights[%d].diffuse",i), glm::vec3(0.8f));
+        shader.SetUniform3f(g_FormatStr("pointLights[%d].specular",i), glm::vec3(1.0f));
+
+        shader.SetUniform1f(g_FormatStr("pointLights[%d].constant",i), 1.0f);
+        shader.SetUniform1f(g_FormatStr("pointLights[%d].linear",i), 0.09f);
+        shader.SetUniform1f(g_FormatStr("pointLights[%d].quadratic",i), 0.032f);
+    }
+    // 聚光(手电筒)属性设置
+    shader.SetUniform3f("spotLight.position", camera.m_Position);
+    shader.SetUniform3f("spotLight.direction", camera.m_Front);
+    shader.SetUniform3f("spotLight.ambient", glm::vec3(0.0f));
+    shader.SetUniform3f("spotLight.diffuse", glm::vec3(1.0f));
+    shader.SetUniform3f("spotLight.specular", glm::vec3(1.0f));
+    shader.SetUniform1f("spotLight.constant", 1.0f);
+    shader.SetUniform1f("spotLight.linear", 0.09f);
+    shader.SetUniform1f("spotLight.quadratic", 0.032f);
+    shader.SetUniform1f("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+    shader.SetUniform1f("spotLight.outerCutOff", glm::cos(glm::radians(17.5f)));
     
     //shader.SetUniform3f("material.ambient", 1.0f, 0.5f, 0.31f);
     //shader.SetUniform3f("material.diffuse", 1.0f, 0.5f, 0.31f);
     //shader.SetUniform3f("material.specular", 0.5f, 0.5f, 0.5f);
     shader.SetUniform1f("material.shininess", 32.0f);
 
-    //设置漫反射贴图
+    //设置材质的漫反射贴图
     Texture diffuseTex("res/textures/container2.png");
     diffuseTex.Bind(0);
-    shader.SetUniform1i("material.diffuse", 0);
-    diffuseTex.Unbind();
-    //设置镜面反射贴图
+    //设置材质的镜面反射贴图
     Texture specularTex("res/textures/specular_color.png");
     //Texture specularTex("res/textures/emission_matrix.jpeg");//有光照的地方才显示
     specularTex.Bind(1);
-    shader.SetUniform1i("material.specular", 1);
-    specularTex.Unbind();
-    //设置放射光贴图(Emission Map)
+    //设置材质的放射光贴图(Emission Map)
     Texture emissionTex("res/textures/emission_matrix.jpeg");
     emissionTex.Bind(2);
+
+    shader.SetUniform1i("material.diffuse", 0);
+    shader.SetUniform1i("material.specular", 1);
     shader.SetUniform1i("material.emission", 2);
-    emissionTex.Unbind();
-
-    //设置模型矩阵/观察矩阵/投影矩阵
-    glm::mat4 model(1.0f);
-    glm::mat4 view(1.0f);
-    glm::mat4 projection(1.0f);
-
-    shader.SetUniformMat4f("model", model);
-    shader.SetUniformMat4f("view", view);
-    shader.SetUniformMat4f("projection", projection);
     
     // 光源着色器的设置
     Shader lampShader("res/shaders/Light.shader");
     lampShader.Bind();
-
-    lampShader.SetUniformMat4f("model", model);
-    lampShader.SetUniformMat4f("view", view);
-    lampShader.SetUniformMat4f("projection", projection);
 
     // 集成ImGui
     ImGui::CreateContext();
@@ -223,10 +237,6 @@ int main(void)
     const char* glsl_version = "#version 150";
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
-
-    float ambientStrength = 0.1f;
-    float specularStrength = 0.5f;
-    int specularFactor = 32;
 
     Renderer renderer;
     float aspect = (float)SCR_WIDTH/(float)SCR_HEIGHT;
@@ -252,9 +262,13 @@ int main(void)
             //lightPos.z = cos(glfwCurTime) * radius;;
         }
 
-        model = glm::mat4(1.0f);
-        view = camera.GetViewMatrix();
-        projection = glm::perspective(glm::radians(camera.Zoom()), aspect, 0.1f, 100.0f);
+        diffuseTex.Active();
+        specularTex.Active();
+        emissionTex.Active();
+
+        glm::mat4 model = glm::mat4(1.0f);
+        glm::mat4 view = camera.GetViewMatrix();
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom()), aspect, 0.1f, 100.0f);
 
         lampShader.Bind();
         model = glm::translate(model, lightPos);
@@ -263,24 +277,17 @@ int main(void)
         lampShader.SetUniformMat4f("view", view);
         lampShader.SetUniformMat4f("projection", projection);
 
+        lampVAO.Bind();
         renderer.Draw(lampVAO, lampShader);
         lampVAO.Unbind();
         lampShader.Unbind();
 
-        diffuseTex.Active();
-        specularTex.Active();
-        emissionTex.Active();
         //设置Uniform前需先绑定Shader
         shader.Bind();
-        static float allRuntime = 0.0f;
-        allRuntime += deltaTime;
-        shader.SetUniform1f("matrixmove", (allRuntime - floor(allRuntime)));
-        
         shader.SetUniform3f("viewPos", camera.m_Position);
-        shader.SetUniform3f("light.position", camera.m_Position);
-        shader.SetUniform3f("light.direction", camera.m_Front);
-        shader.SetUniform1f("light.cutOff", glm::cos(glm::radians(12.5f)));
-        shader.SetUniform1f("light.outerCutOff", glm::cos(glm::radians(17.5f)));
+        //static float allRuntime = 0.0f;
+        //allRuntime += deltaTime;
+        //shader.SetUniform1f("matrixmove", (allRuntime - floor(allRuntime)));
 
         model = glm::mat4(1.0f);
         //float angle = -5.f;//55.0f * glwfCurTime;
@@ -289,22 +296,25 @@ int main(void)
         shader.SetUniformMat4f("view", view);
         shader.SetUniformMat4f("projection", projection);
 
+        shader.SetUniform3f("spotLight.position", camera.m_Position);
+        shader.SetUniform3f("spotLight.direction", camera.m_Front);
+
+        cubeVAO.Bind();
         for (size_t idx = 0; idx < 10; idx++)
         {
             glm::mat4 model(1.0f);
             model = glm::translate(model, cubePos[idx]);
             float angle = 20.0f * idx;
-            //if (idx % 3 == 0) angle = 20.0f * glfwGetTime();
             model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
             shader.SetUniformMat4f("model", model);
             
-            //cubeVAO.Bind(); //只需绑定VAO即可
+            //cubeVAO.Bind();//只需绑VAO即可
             renderer.Draw(cubeVAO, shader);
         }
         cubeVAO.Unbind();
         shader.Unbind();
-
-        {   // ImGUI Setting
+         
+        /*{   // ImGUI Setting
             ImGui::Begin("HelloOpenGL");// Create a window
             ImGui::SliderFloat3("view_position", &camera.m_Position.x, -10.0f, 10.0f, "%.2f");
             ImGui::SliderFloat3("light_position", &lightPos.x, -5.0f, 5.0f, "%.2f");
@@ -315,7 +325,7 @@ int main(void)
             float totalFPS = ImGui::GetIO().Framerate;
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", avgFPS, totalFPS);
             ImGui::End();
-        }
+        }*/
 
         // Rendering
         ImGui::Render();

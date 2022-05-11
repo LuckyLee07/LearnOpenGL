@@ -23,8 +23,8 @@ void Mesh::Draw(Shader& shader)
 	uint diffuseNr = 1, specularNr = 1, texCnt = 0;
 	for (uint idx = 0; idx < m_Textures.size(); idx++)
 	{
-		m_Textures[idx].Bind(idx);//设置纹理单元槽
-
+		m_Textures[idx].SetSlot(idx);//设置纹理单元槽
+        
 		std::string texNumber;
 		std::string cType = m_Textures[idx].GetType();
 		if (cType == "texture_diffuse")

@@ -22,9 +22,9 @@ public:
     ~Texture();
 
     void Delete(); //Texture是uniform不能直接删
-    bool InitTexture(const std::string& path);
+    bool Initialize(const std::string& path);
 
-    void Bind(unsigned int slot = 0);
+    void Bind() const;
     void Unbind() const;
     void Active() const;
 

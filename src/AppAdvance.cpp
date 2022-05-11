@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
+#define APP_MAIN
 #ifdef APP_MAIN //启用新的main函数
 
 #include "VertexBuffer.h"
@@ -88,101 +89,95 @@ int main(void)
 
     std::cout << glGetString(GL_VERSION) << std::endl;
 
-    float vertices[] = { //顶点相关数据
-        //位置属性             //颜色属性          //纹理坐标
-        -0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f, // 0左下
-         0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, // 1右下
-         0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  1.0f, 1.0f, // 2右上
-        -0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f, // 3左上
+    float cubeVertices[] = {
+        // positions          // texture Coords
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
-    unsigned int indices[] = {
-        0, 1, 2, // 1
-        2, 3, 0, // 2
+    float planeVertices[] = {
+        // positions          // texture Coords
+         5.0f, -0.5f,  5.0f,  2.0f, 0.0f,
+        -5.0f, -0.5f,  5.0f,  0.0f, 0.0f,
+        -5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
+
+         5.0f, -0.5f,  5.0f,  2.0f, 0.0f,
+        -5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
+         5.0f, -0.5f, -5.0f,  2.0f, 2.0f								
     };
 
-    // 指定坐标轴三角形箭头属性数据 顶点 颜色
-	GLfloat axisTriangleData[] = {
-		0.945f,    0.03125f,  0.0f,   1.0f, 0.0f, 0.0f,// +x轴三角形
-		1.0f,      0.0f,      0.0f,   1.0f, 0.0f, 0.0f,
-		0.945f,    -0.03125f, 0.0f,   1.0f, 0.0f, 0.0f,
-		-0.03125f, 0.945f,    0.0f,   0.0f, 1.0f, 0.0f,// +y轴三角形
-		0.0f,      1.0f,      0.0f,   0.0f, 1.0f, 0.0f,
-		0.03125f,  0.945f,    0.0f,   0.0f, 1.0f, 0.0f,
-		-0.03125f, 0.0f,      0.945f, 0.0f, 0.0f, 1.0f,// +z轴三角形
-		0.0f,      0.0f,      1.0f,   0.0f, 0.0f, 1.0f,
-		0.03125f,  0.0f,      0.945f, 0.0f, 0.0f, 1.0f,
-	};
-	// 指定坐标轴直线属性数据 顶点 颜色
-	GLfloat axisLineData[] = {
-		-1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,  1.0f, 0.0f, 0.0f,
-		0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,  0.0f, 1.0f, 0.0f,
-		0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 1.0f,  0.0f, 0.0f, 1.0f
-	};
-
-    //VAO(vertex Array Object)：顶点数组对象
-    //VBO(vertex Buffer Object)：顶点缓冲对象
-    //IBO(index Buffer Object)：索引缓冲对象
-    VertexArray VAO; //顶点数组对象
-    VertexBuffer VBO(vertices, 4 * 8 * sizeof(float));
     VertexBufferLayout layout;
     layout.Push<float>(3); //位置
-    layout.Push<float>(3); //颜色
     layout.Push<float>(2); //纹理
-    VAO.AddBuffer(VBO, layout);
-    IndexBuffer IBO(indices, 6); //索引缓冲对象
 
-    Shader shader("res/shaders/Texture.shader");
+    VertexArray cubeVAO; //方块顶点数组对象
+    VertexBuffer cubeVBO(cubeVertices, 36*5 * sizeof(float));
+    cubeVAO.AddBuffer(cubeVBO, layout);
+    cubeVAO.Unbind();
+
+    VertexArray planeVAO; //地板顶点数组对象
+    VertexBuffer planeVBO(planeVertices, 6*5 * sizeof(float));
+    planeVAO.AddBuffer(planeVBO, layout);
+    planeVAO.Unbind();
+
+    Shader shader("res/shaders/Advance.shader");
     shader.Bind(); //创建Program后绑定
-    
-    //设置模型矩阵/观察矩阵/投影矩阵
-    glm::mat4 model(1.0f);
-    shader.SetUniformMat4f("model", model);
-
-    glm::mat4 view(1.0f);
-    view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    shader.SetUniformMat4f("view", view);
-
-    glm::mat4 projection(1.0f);
-    projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH/(float)SCR_HEIGHT, 0.1f, 100.0f);
-    shader.SetUniformMat4f("projection", projection);
 
     // 创建并使用纹理
-    Texture texture1("res/textures/container.jpg", 0);
-    shader.SetUniform1i("u_Texture1", texture1.GetSlot());
+    Texture cubeTexture("res/textures/marble.jpeg");
+    Texture floorTexture("res/textures/metal.png");
 
-    Texture texture2("res/textures/cute_cat.png", 1);
-    shader.SetUniform1i("u_Texture2", texture2.GetSlot());
+    shader.SetUniform1i("u_Texture", 0);
 
     // Unbind Data
     glUseProgram(0);
-    glBindVertexArray(0);
-
-
-    // 坐标系绘制
-    VertexBufferLayout axisLayout;
-    axisLayout.Push<float>(3); //位置
-    axisLayout.Push<float>(3); //颜色
-
-    VertexArray axisLineVAO;
-    VertexBuffer axisLineVBO(axisLineData, 6 * 6 * sizeof(GLfloat));
-    axisLineVAO.AddBuffer(axisLineVBO, axisLayout);
-    axisLineVAO.Unbind();
-
-    VertexArray axisTrsVAO;
-    VertexBuffer axisTrsVBO(axisTriangleData, 12 * 6 * sizeof(GLfloat));
-    axisTrsVAO.AddBuffer(axisTrsVBO, axisLayout);
-    axisTrsVAO.Unbind();
-
-    Shader axisShader("res/shaders/Axis.shader");
-    axisShader.Bind(); //创建Program后绑定
+    cubeVAO.Unbind();
+    planeVAO.Unbind();
 
     //线框模式(Wireframe Mode)
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     Renderer renderer; //渲染器
+    float aspect = (float)SCR_WIDTH/(float)SCR_HEIGHT;
+    
     while (!glfwWindowShouldClose(window))
     {
         float currTime = glfwGetTime();
@@ -194,52 +189,36 @@ int main(void)
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        texture1.Active();
-        texture2.Active();
+        shader.Bind();//设置Uniform前先绑定Shader
 
-        //设置Uniform前需先绑定Shader
-        shader.Bind();
+        //设置模型矩阵/观察矩阵/投影矩阵
+        glm::mat4 model = glm::mat4(1.0f);
+        glm::mat4 view = camera.GetViewMatrix();
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom()), aspect, 0.1f, 100.0f);
 
-        VAO.Bind();
+        shader.SetUniformMat4f("view", view);
+        shader.SetUniformMat4f("projection", projection);
         
-        model = glm::mat4(1.0f); //第一象限 右上
-        model = glm::translate(model, glm::vec3( 0.5f, 0.5f, 0.0f));
+        cubeVAO.Bind();
+        model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
         shader.SetUniformMat4f("model", model);
-        renderer.Draw(VAO, IBO, shader);
 
-        model = glm::mat4(1.0f); //第二象限 右下
-        model = glm::translate(model, glm::vec3( 0.5f, -0.5f, 0.0f));
-        model = glm::scale(model, glm::vec3( 1.0f, -1.0f, 1.0f));
+        cubeTexture.Active();
+        renderer.Draw(cubeVAO, shader, 36);
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
         shader.SetUniformMat4f("model", model);
-        renderer.Draw(VAO, IBO, shader);
+        renderer.Draw(cubeVAO, shader, 36);
+        cubeVAO.Unbind();
+        
+        planeVAO.Bind();
+        floorTexture.Active();
+        shader.SetUniformMat4f("model", glm::mat4(1.0f));
+        renderer.Draw(planeVAO, shader, 6);    
+        planeVAO.Unbind();
 
-        model = glm::mat4(1.0f); //第三象限 左下
-        model = glm::translate(model, glm::vec3(-0.5f, -0.5f, 0.0f));
-        model = glm::scale(model, glm::vec3( -1.0f, -1.0f, 1.0f));
-        shader.SetUniformMat4f("model", model);
-        renderer.Draw(VAO, IBO, shader);
-
-        model = glm::mat4(1.0f); //第四象限 左上
-        model = glm::translate(model, glm::vec3(-0.5f, 0.5f, 0.0f));
-        model = glm::scale(model, glm::vec3( -1.0f, 1.0f, 1.0f));
-        shader.SetUniformMat4f("model", model);
-        renderer.Draw(VAO, IBO, shader);
-
-        VAO.Unbind();
         shader.Unbind();
-        
-        // 绘制坐标轴
-		axisShader.Bind();
-
-        axisTrsVAO.Bind();
-		glDrawArrays(GL_TRIANGLES, 0, 9);
-        axisTrsVAO.Unbind();
-        
-        axisLineVAO.Bind();
-		glDrawArrays(GL_LINES, 0, 6);
-        axisLineVAO.Unbind();
-        
-        axisShader.Unbind();
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);

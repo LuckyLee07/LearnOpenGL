@@ -39,7 +39,7 @@ namespace test
 
         // 纹理Texture相关
         m_Texture = nullptr;//std::make_unique<Texture>("res/textures/BeatuyAvatar.png");
-        m_Texture->Bind(0);
+        m_Texture->SetSlot(0);
         m_Shader->SetUniform1i("u_Texture1", 0);
         
         m_VAO->Unbind();
@@ -72,7 +72,7 @@ namespace test
 
         //设置Uniform前需先绑定Shader
         m_Shader->Bind();
-        m_Texture->Bind(0);
+        m_Texture->SetSlot(0);
         {
             glm::mat4 model = glm::translate(glm::mat4(1.0f), m_TranslationA);
             glm::mat4 mvp = m_proj * m_view * model;

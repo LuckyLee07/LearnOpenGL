@@ -13,7 +13,9 @@ public:
     void Bind() const;
     void Unbind() const;
 
+    unsigned int GetID() const { return m_RenderId; }
     unsigned int GetCount() const { return m_Count; }
+    
 };
 
 #endif

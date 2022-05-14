@@ -14,6 +14,7 @@ struct ShaderSource
 class Shader
 {
 private:
+    bool m_isBind;
     std::string m_Filepath;
     unsigned int m_RenderId;
     std::unordered_map<std::string, unsigned int> m_UniformLocationCache;
@@ -21,8 +22,8 @@ public:
     Shader(const std::string& filepath);
     ~Shader();
 
-    void Bind() const;
-    void Unbind() const;
+    void Bind();//设置绑定
+    void Unbind();//解除绑定
 
     //SetUniform-Value
     void SetUniform1i(const std::string& name, int value);

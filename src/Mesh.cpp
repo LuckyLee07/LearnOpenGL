@@ -24,7 +24,7 @@ void Mesh::Draw(Shader& shader)
 	for (uint idx = 0; idx < m_Textures.size(); idx++)
 	{
 		m_Textures[idx].SetSlot(idx);//设置纹理单元槽
-        
+
 		std::string texNumber;
 		std::string cType = m_Textures[idx].GetType();
 		if (cType == "texture_diffuse")
@@ -43,6 +43,21 @@ void Mesh::Draw(Shader& shader)
 
 void Mesh::setupMesh()
 {
+    /*
+    VertexBufferLayout layout;
+    layout.Push<float>(3); //位置
+    layout.Push<float>(3); //法线
+    layout.Push<float>(2); //纹理
+
+    VertexArray tempVAO;
+    uint dataSize =  m_Vertices.size() * sizeof(VertexData);
+    VertexBuffer tempVBO(&m_Vertices[0], dataSize);
+    tempVAO.AddBuffer(tempVBO, layout);
+    m_VAO = tempVAO.GetID();
+
+    IndexBuffer tempIBO(&m_Indices[0], m_Indices.size());
+    m_IBO = tempIBO.GetID();
+    */
 	glGenVertexArrays(1, &m_VAO);
 	glGenBuffers(1, &m_VBO);
 	glGenBuffers(1, &m_IBO);

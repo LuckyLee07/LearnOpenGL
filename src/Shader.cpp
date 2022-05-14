@@ -6,7 +6,7 @@
 #include <sstream>
 #include <iostream>
 
-Shader::Shader(const std::string& filepath)
+Shader::Shader(const std::string& filepath) : m_isBind(false)
 {
     ShaderSource source = ParseShader(filepath.c_str());
     m_RenderId = CreateShader(source.VertexSource, source.FragmentSource);
@@ -17,13 +17,15 @@ Shader::~Shader()
     GLCall(glDeleteProgram(m_RenderId));
 }
 
-void Shader::Bind() const
+void Shader::Bind()
 {
+    m_isBind = true;
     GLCall(glUseProgram(m_RenderId));
 }
 
-void Shader::Unbind() const
+void Shader::Unbind()
 {
+    m_isBind = false;
     GLCall(glUseProgram(0));
 }
 
@@ -60,6 +62,11 @@ void Shader::SetUniformMat4f(const std::string& name, const glm::mat4& matrix)
 
 int Shader::GetUniformLocation(const std::string& name)
 {
+    if (!m_isBind)
+    {
+        LOG_INFO("Fxkk===>> %s", "Shader no bind before used!");
+        ASSERT(false);
+    }   
     auto findIter = m_UniformLocationCache.find(name);
     if (findIter != m_UniformLocationCache.end())
     {

@@ -217,47 +217,35 @@ int main(void)
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom()), aspect, 0.1f, 100.0f);
+        
+        glEnable(GL_DEPTH_TEST); //重新开启深度测试
 
-        // 绘制矩形模版
-        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-        glDepthMask(GL_FALSE);
+        // 绘制物体模型
+        //glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+        //glDepthMask(GL_FALSE);
         glStencilMask(0xFF);
         glStencilFunc(GL_ALWAYS, 1, 0xFF);
-        glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE); // 在模版测试和深度测试都通过时更新模版缓冲区
-
-        stl_Shader.Bind();
-        stl_Shader.SetUniformMat4f("model", model);
-        stl_Shader.SetUniformMat4f("view", view);
-        stl_Shader.SetUniformMat4f("projection", projection);
-        stencilVAO.Bind();
-        renderer.Draw(stencilVAO, stl_Shader, 6);
-        stencilVAO.Unbind();
-        stl_Shader.Unbind();
-        
-        // 绘制其他物体
-        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-        glDepthMask(GL_TRUE);
-        glStencilMask(0x00); //禁止写入stencil
-        glStencilFunc(GL_EQUAL, 1, 0xFF);
-        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // 在模版测试和深度测试都通过时更新模版缓冲区
+        glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
         
         shader.Bind();//设置Uniform前先绑定Shader
         shader.SetUniformMat4f("view", view);
         shader.SetUniformMat4f("projection", projection);
         
         cubeVAO.Bind();
-        model = glm::translate(model, glm::vec3(-1.0f, 0.01f, -1.0f));
+        model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
         shader.SetUniformMat4f("model", model);
-
         cubeTexture.Active();
         renderer.Draw(cubeVAO, shader, 36);
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(2.0f, 0.01f, 0.0f));
+        model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
         shader.SetUniformMat4f("model", model);
         renderer.Draw(cubeVAO, shader, 36);
         cubeVAO.Unbind();
         
+        //绘制地板时禁止写入
+        glStencilMask(0x00);
+
         planeVAO.Bind();
         floorTexture.Active();
         shader.SetUniformMat4f("model", glm::mat4(1.0f));
@@ -265,6 +253,36 @@ int main(void)
         planeVAO.Unbind();
 
         shader.Unbind();
+
+        glDisable(GL_DEPTH_TEST); // 这里关闭深度测试 是为了让轮廓不因为处在前面的平面而被消去
+        // 绘制物体模型轮廓
+        //glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+        //glDepthMask(GL_TRUE);
+        glStencilMask(0x00); //禁止写入stencil
+        glStencilFunc(GL_EQUAL, 0, 0xFF);
+        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+
+        stl_Shader.Bind();
+        stl_Shader.SetUniformMat4f("view", view);
+        stl_Shader.SetUniformMat4f("projection", projection);
+
+        cubeVAO.Bind();
+        cubeTexture.Active();
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
+        model = glm::scale(model, glm::vec3(1.01f));
+        stl_Shader.SetUniformMat4f("model", model);
+        renderer.Draw(cubeVAO, stl_Shader, 36);
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(1.01f));
+        stl_Shader.SetUniformMat4f("model", model);
+        renderer.Draw(cubeVAO, shader, 36);
+
+        cubeVAO.Unbind();
+        stl_Shader.Unbind();
         
         glStencilMask(0xFF); //允许写入stencil
         

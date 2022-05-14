@@ -18,6 +18,8 @@ public:
     void Bind() const;
     void Unbind() const;
 
+    void Delete() const;//uniform类型不能直接删
+
     unsigned int GetID() const { return m_RenderId; }
 };
 

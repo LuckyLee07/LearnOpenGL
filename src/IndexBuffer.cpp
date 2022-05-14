@@ -14,6 +14,11 @@ IndexBuffer::~IndexBuffer()
     //glDeleteBuffers(1, &m_RenderId);
 }
 
+void IndexBuffer::Delete() const
+{
+    glDeleteBuffers(1, &m_RenderId);
+}
+
 void IndexBuffer::Bind() const
 {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RenderId);

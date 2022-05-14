@@ -21,7 +21,7 @@ public:
 
     ~Texture();
 
-    void Delete(); //Texture是uniform不能直接删
+    void Delete();//Texture是uniform不能直接删
     bool Initialize(const std::string& path);
 
     void Bind() const;

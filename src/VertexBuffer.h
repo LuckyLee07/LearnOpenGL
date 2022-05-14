@@ -11,6 +11,8 @@ public:
 
     void Bind() const;
     void Unbind() const;
+
+    void Delete() const;//uniform类型不能直接删
 };
 
 #endif

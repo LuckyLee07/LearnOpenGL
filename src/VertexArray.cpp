@@ -15,6 +15,11 @@ VertexArray::~VertexArray()
     //GLCall(glDeleteVertexArrays(1, &m_RenderId));
 }
 
+void VertexArray::Delete() const
+{
+    GLCall(glDeleteVertexArrays(1, &m_RenderId));
+}
+
 void VertexArray::AddBuffer(const VertexBuffer& vb, const VertexBufferLayout& layout)
 {
     vb.Bind();

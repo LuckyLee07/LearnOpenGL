@@ -13,6 +13,7 @@
 #include "Texture.h"
 #include "Renderer.h"
 #include "Camera.h"
+#include "Model.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -31,6 +32,8 @@ Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
+
+glm::vec3 lightPos(2.5f, 1.5f, 0.0f);
 
 int main(void)
 {
@@ -165,8 +168,15 @@ int main(void)
 	Shader stl_Shader("res/shaders/Stencil.shader");
     stl_Shader.Unbind();
 
-    Shader shader("res/shaders/Advance.shader");
+    Shader shader("res/shaders/Model.shader");
     shader.Bind(); //创建Program后绑定
+
+    shader.SetUniform3f("light.position", lightPos);
+    shader.SetUniform3f("light.ambient", glm::vec3(0.3f));
+    shader.SetUniform3f("light.diffuse", glm::vec3(0.5f));
+    shader.SetUniform3f("light.specular", glm::vec3(0.8f));
+
+    Model ourModel("res/miniw/cloudportal.obj");
 
     // 创建并使用纹理
     Texture cubeTexture("res/textures/marble.jpeg");
@@ -194,7 +204,6 @@ int main(void)
         processInput(window, deltaTime); //键盘输入处理
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        //glClearStencil(0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // 默认清除时写入0
         
         //模型矩阵/观察矩阵/投影矩阵
@@ -202,6 +211,17 @@ int main(void)
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom()), aspect, 0.1f, 100.0f);
         
+        /*
+        shader.Bind();
+        shader.SetUniformMat4f("view", view);
+        shader.SetUniformMat4f("projection", projection);
+
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+		
+		shader.SetUniformMat4f("model", model);
+
+        ourModel.Draw(shader); //绘制模型
+        */
         // 1、利用反射平面绘制模版
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
         glDisable(GL_DEPTH_TEST);
@@ -232,25 +252,18 @@ int main(void)
         shader.SetUniformMat4f("view", view);
         shader.SetUniformMat4f("projection", projection);
 
-        cubeVAO.Bind();
-        cubeTexture.Active();
-
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
+        // 反射翻转变换 scale(-y)
         model = glm::translate(model, glm::vec3(0.0f, -0.5f, 0.0f));
         model = glm::scale(model, glm::vec3(1.0f, -1.0f, 1.0f));
         model = glm::translate(model, glm::vec3(0.0f, 0.5f, 0.0f));
-        shader.SetUniformMat4f("model", model);
-        renderer.Draw(cubeVAO, shader, 36);
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
         model = glm::translate(model, glm::vec3(0.0f, -0.5f, 0.0f));
-        model = glm::scale(model, glm::vec3(1.0f, -1.0f, 1.0f));
-        model = glm::translate(model, glm::vec3(0.0f, 0.5f, 0.0f));
+        model = glm::rotate(model, glm::radians(20.0f), glm::vec3(1.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(0.005f));
+
         shader.SetUniformMat4f("model", model);
-        renderer.Draw(cubeVAO, shader, 36);
-        cubeVAO.Unbind();
+        ourModel.Draw(shader);
         shader.Unbind();
 
         // <2>绘制反射平面
@@ -269,20 +282,16 @@ int main(void)
         
         // <3>绘制原始物体
         shader.Bind();
-        cubeVAO.Bind();
-        cubeTexture.Active();
+        shader.SetUniformMat4f("view", view);
+        shader.SetUniformMat4f("projection", projection);
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
-        shader.SetUniformMat4f("model", model);
-        renderer.Draw(cubeVAO, shader, 36);
+        model = glm::translate(model, glm::vec3(0.0f, -0.5f, 0.0f));
+        model = glm::rotate(model, glm::radians(20.0f), glm::vec3(1.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(0.005f));
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
         shader.SetUniformMat4f("model", model);
-        renderer.Draw(cubeVAO, shader, 36);
-        
-        cubeVAO.Unbind();
+        ourModel.Draw(shader);
         shader.Unbind();
         
         glEnable(GL_STENCIL_TEST);

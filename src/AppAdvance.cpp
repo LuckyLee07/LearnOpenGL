@@ -14,6 +14,7 @@
 #include "Renderer.h"
 #include "Camera.h"
 
+#include <map>
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
@@ -82,8 +83,8 @@ int main(void)
     }
 
     //Blend 混合是将源色和目标色以某种方式混合生成特效的技术 常用来绘制透明或半透明的物体
-    //glEnable(GL_BLEND); //启用混合
-    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND); //启用混合
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glEnable(GL_DEPTH_TEST); //开启深度测试功能
 
@@ -160,6 +161,13 @@ int main(void)
     vegetation.push_back(glm::vec3(-0.3f,  0.0f, -2.3f));
     vegetation.push_back(glm::vec3( 0.5f,  0.0f, -0.6f));
 
+    std::map<float, glm::vec3> sorted;
+    for (size_t i = 0; i < vegetation.size(); i++)
+    {
+        float distance = glm::length(camera.m_Position - vegetation[i]);
+        sorted[distance] = vegetation[i];
+    }
+
     VertexBufferLayout layout;
     layout.Push<float>(3); //位置
     layout.Push<float>(2); //纹理
@@ -185,7 +193,7 @@ int main(void)
     // 创建并使用纹理
     Texture cubeTexture("res/textures/marble.jpeg");
     Texture floorTexture("res/textures/metal.png");
-    Texture grassTexture("res/textures/grass.png", GL_CLAMP_TO_EDGE);
+    Texture grassTexture("res/textures/window.png");
 
     shader.SetUniform1i("u_Texture", 0);
 
@@ -242,10 +250,11 @@ int main(void)
 
         grassVAO.Bind();
         grassTexture.Active();
-        for (size_t i = 0; i < vegetation.size(); i++)
+        // 以逆序（从远到近）顺序绘制对应窗口
+        for (auto iter = sorted.rbegin(); iter != sorted.rend(); iter++)
         {
             model = glm::mat4(1.0f);
-            model = glm::translate(model, vegetation[i]);
+            model = glm::translate(model, iter->second);
             shader.SetUniformMat4f("model", model);
             renderer.Draw(cubeVAO, shader, 6);
         }

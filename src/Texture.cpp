@@ -2,26 +2,29 @@
 #include <iostream>
 #include "stb_image/stb_image.h"
 
-Texture::Texture(const std::string& path, int slot)
+Texture::Texture(const std::string& path)
     : m_RenderId(0), m_FilePath(path), m_LocalBuffer(nullptr),
-    m_Width(0), m_Height(0), m_BPP(0), m_slot(slot)
+    m_Width(0), m_Height(0), m_BPP(0), m_texSlot(0)
 {   
-    if (!this->Initialize(path))
-    {
-        LOG_INFO("Texture failed do init ===>> %s", path.c_str());
-    }
+    m_WrapType = GL_REPEAT;
+    if (!this->Initialize(path)) return;
+}
+
+Texture::Texture(const std::string& path, int wrapType)
+    : m_RenderId(0), m_FilePath(path), m_LocalBuffer(nullptr),
+    m_Width(0), m_Height(0), m_BPP(0), m_texSlot(0)
+{   
+    m_WrapType = wrapType;
+    if (!this->Initialize(path)) return;
 }
 
 Texture::Texture(const std::string& path, const char* cType)
     : m_RenderId(0), m_FilePath(path), m_LocalBuffer(nullptr),
-    m_Width(0), m_Height(0), m_BPP(0), m_slot(0)
+    m_Width(0), m_Height(0), m_BPP(0), m_texSlot(0)
 {
-    if (cType != nullptr) m_type = cType;
-
-    if (!this->Initialize(path))
-    {
-        LOG_INFO("Texture failed to init ===>> %s", path.c_str());
-    }
+    m_WrapType = GL_REPEAT;
+    if (cType != nullptr) m_texType = cType;
+    if (!this->Initialize(path)) return;
 }
 
 bool Texture::Initialize(const std::string& path)
@@ -50,8 +53,9 @@ bool Texture::Initialize(const std::string& path)
     GLCall(glBindTexture(GL_TEXTURE_2D, m_RenderId));
 
     //为当前绑定的纹理对象设置环绕、过滤方式
-    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
-    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
+    if (m_WrapType == 0) m_WrapType = GL_REPEAT;
+    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, m_WrapType));
+    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, m_WrapType));
     //float borderColor[] = {1.0f, 0.0f, 0.0f, 1.0f};
     //glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
     //GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER));
@@ -89,6 +93,6 @@ void Texture::Unbind() const
 
 void Texture::Active() const
 {
-    GLCall(glActiveTexture(GL_TEXTURE0 + m_slot));
+    GLCall(glActiveTexture(GL_TEXTURE0 + m_texSlot));
     GLCall(glBindTexture(GL_TEXTURE_2D, m_RenderId));
 }

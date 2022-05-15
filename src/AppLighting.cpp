@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
+//#define APP_MAIN
 #ifdef APP_MAIN //启用新的main函数
 
 #include "VertexBuffer.h"
@@ -213,18 +214,18 @@ int main(void)
 
     //设置材质的漫反射贴图
     Texture diffuseTex("res/textures/container2.png");
-    diffuseTex.Bind(0);
+    diffuseTex.SetSlot(0);
     //设置材质的镜面反射贴图
     Texture specularTex("res/textures/specular_color.png");
     //Texture specularTex("res/textures/emission_matrix.jpeg");//有光照的地方才显示
-    specularTex.Bind(1);
+    specularTex.SetSlot(1);
     //设置材质的放射光贴图(Emission Map)
     Texture emissionTex("res/textures/emission_matrix.jpeg");
-    emissionTex.Bind(2);
+    emissionTex.SetSlot(2);
 
-    shader.SetUniform1i("material.diffuse", 0);
-    shader.SetUniform1i("material.specular", 1);
-    shader.SetUniform1i("material.emission", 2);
+    shader.SetUniform1i("material.diffuse", diffuseTex.GetSlot());
+    shader.SetUniform1i("material.specular", specularTex.GetSlot());
+    shader.SetUniform1i("material.emission", emissionTex.GetSlot());
     
     // 光源着色器的设置
     Shader lampShader("res/shaders/Light.shader");

@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
+//#define APP_MAIN
 #ifdef APP_MAIN //启用新的main函数
 
 #include "VertexBuffer.h"
@@ -175,14 +176,12 @@ int main(void)
 
     // 创建并使用纹理
     Texture texture1("res/textures/container.jpg");
-    texture1.Bind(0);
-    shader.SetUniform1i("u_Texture1", 0);
-    texture1.Unbind();
-
+    texture1.SetSlot(0);
     Texture texture2("res/textures/awesomeface.png");
-    texture2.Bind(1);
-    shader.SetUniform1i("u_Texture2", 1);
-    texture2.Unbind();
+    texture2.SetSlot(1);
+
+    shader.SetUniform1i("u_Texture1", texture1.GetSlot());
+    shader.SetUniform1i("u_Texture2", texture2.GetSlot());
 
     // Unbind Data
     glUseProgram(0);
@@ -230,6 +229,7 @@ int main(void)
         projection = glm::perspective(glm::radians(camera.Zoom()), (float)SCR_WIDTH/(float)SCR_HEIGHT, 0.1f, 100.0f);
         shader.SetUniformMat4f("projection", projection);
 
+        vao.Bind();
         for (size_t idx = 0; idx < 10; idx++)
         {
             glm::mat4 model(1.0f);

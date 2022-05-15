@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
+//#define APP_MAIN
 #ifdef APP_MAIN //启用新的main函数
 
 #include "VertexBuffer.h"
@@ -150,16 +151,17 @@ int main(void)
     shader.SetUniformMat4f("projection", projection);
 
     // 创建并使用纹理
-    Texture texture1("res/textures/container.jpg", 0);
-    shader.SetUniform1i("u_Texture1", texture1.GetSlot());
+    Texture texture1("res/textures/container.jpg");
+    texture1.SetSlot(0);
+    Texture texture2("res/textures/cute_cat.png");
+    texture1.SetSlot(1);
 
-    Texture texture2("res/textures/cute_cat.png", 1);
+    shader.SetUniform1i("u_Texture1", texture1.GetSlot());
     shader.SetUniform1i("u_Texture2", texture2.GetSlot());
 
     // Unbind Data
     glUseProgram(0);
     glBindVertexArray(0);
-
 
     // 坐标系绘制
     VertexBufferLayout axisLayout;

@@ -13,7 +13,6 @@
 #include "Texture.h"
 #include "Renderer.h"
 #include "Camera.h"
-#include "Model.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -32,8 +31,6 @@ Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
-
-glm::vec3 lightPos(2.5f, 1.5f, 0.0f);
 
 int main(void)
 {
@@ -89,10 +86,6 @@ int main(void)
     //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glEnable(GL_DEPTH_TEST); //开启深度测试功能
-    glDepthMask(GL_TRUE);
-    glDepthFunc(GL_LESS);
-
-    glEnable(GL_STENCIL_TEST); // 开启模版测试
 
     std::cout << glGetString(GL_VERSION) << std::endl;
 
@@ -150,7 +143,23 @@ int main(void)
         -5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
          5.0f, -0.5f, -5.0f,  2.0f, 2.0f								
     };
-    
+    float grassVertices[] = {
+        // positions         // texture Coords
+        0.0f,  0.5f,  0.0f,  0.0f,  1.0f,
+        0.0f, -0.5f,  0.0f,  0.0f,  0.0f,
+        1.0f, -0.5f,  0.0f,  1.0f,  0.0f,
+
+        0.0f,  0.5f,  0.0f,  0.0f,  1.0f,
+        1.0f, -0.5f,  0.0f,  1.0f,  0.0f,
+        1.0f,  0.5f,  0.0f,  1.0f,  1.0f
+    };
+    std::vector<glm::vec3> vegetation;
+    vegetation.push_back(glm::vec3(-1.5f,  0.0f, -0.48f));
+    vegetation.push_back(glm::vec3( 1.5f,  0.0f,  0.51f));
+    vegetation.push_back(glm::vec3( 0.0f,  0.0f,  0.7f));
+    vegetation.push_back(glm::vec3(-0.3f,  0.0f, -2.3f));
+    vegetation.push_back(glm::vec3( 0.5f,  0.0f, -0.6f));
+
     VertexBufferLayout layout;
     layout.Push<float>(3); //位置
     layout.Push<float>(2); //纹理
@@ -160,27 +169,23 @@ int main(void)
     cubeVAO.AddBuffer(cubeVBO, layout);
     cubeVAO.Unbind();
 
-    VertexArray planeVAO; //模拟镜面地板顶点数据
+    VertexArray planeVAO; //地板顶点数组对象
     VertexBuffer planeVBO(planeVertices, 6*5 * sizeof(float));
     planeVAO.AddBuffer(planeVBO, layout);
     planeVAO.Unbind();
 
-	Shader stl_Shader("res/shaders/Stencil.shader");
-    stl_Shader.Unbind();
+    VertexArray grassVAO; //草块顶点数组对象
+    VertexBuffer grassVBO(grassVertices, 6*5 * sizeof(float));
+    grassVAO.AddBuffer(grassVBO, layout);
+    grassVAO.Unbind();
 
-    Shader shader("res/shaders/Model.shader");
+    Shader shader("res/shaders/Advance.shader");
     shader.Bind(); //创建Program后绑定
-
-    shader.SetUniform3f("light.position", lightPos);
-    shader.SetUniform3f("light.ambient", glm::vec3(0.3f));
-    shader.SetUniform3f("light.diffuse", glm::vec3(0.5f));
-    shader.SetUniform3f("light.specular", glm::vec3(0.8f));
-
-    Model ourModel("res/miniw/cloudportal.obj");
 
     // 创建并使用纹理
     Texture cubeTexture("res/textures/marble.jpeg");
     Texture floorTexture("res/textures/metal.png");
+    Texture grassTexture("res/textures/grass.png", GL_CLAMP_TO_EDGE);
 
     shader.SetUniform1i("u_Texture", 0);
 
@@ -204,99 +209,56 @@ int main(void)
         processInput(window, deltaTime); //键盘输入处理
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // 默认清除时写入0
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        //模型矩阵/观察矩阵/投影矩阵
+        shader.Bind();//设置Uniform前先绑定Shader
+
+        //设置模型矩阵/观察矩阵/投影矩阵
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom()), aspect, 0.1f, 100.0f);
-        
-        /*
-        shader.Bind();
+
         shader.SetUniformMat4f("view", view);
         shader.SetUniformMat4f("projection", projection);
-
-		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-		
-		shader.SetUniformMat4f("model", model);
-
-        ourModel.Draw(shader); //绘制模型
-        */
-        // 1、利用反射平面绘制模版
-        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-        glDisable(GL_DEPTH_TEST);
-        glStencilMask(0xFF);
-        glStencilFunc(GL_ALWAYS, 1, 0xFF);
-        glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
         
-        //floorTexture.Active();
-        stl_Shader.Bind();
-        stl_Shader.SetUniformMat4f("model", model);
-        stl_Shader.SetUniformMat4f("view", view);
-        stl_Shader.SetUniformMat4f("projection", projection);
+        cubeVAO.Bind();
+        model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
+        shader.SetUniformMat4f("model", model);
 
-        planeVAO.Bind();
-        renderer.Draw(planeVAO, stl_Shader, 6);
-        planeVAO.Unbind();
-        stl_Shader.Unbind();
-        
-        // 2、绘制平面内的反射部分
-        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-        glEnable(GL_DEPTH_TEST);
-        glStencilMask(0x00); //禁止写入stencil
-        glStencilFunc(GL_EQUAL, 1, 0xFF);
-        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-        
-        // <1>绘制反射部分物体
-        shader.Bind();//设置Uniform前先绑定Shader
-        shader.SetUniformMat4f("view", view);
-        shader.SetUniformMat4f("projection", projection);
+        cubeTexture.Active();
+        renderer.Draw(cubeVAO, shader, 36);
 
         model = glm::mat4(1.0f);
-        // 反射翻转变换 scale(-y)
-        model = glm::translate(model, glm::vec3(0.0f, -0.5f, 0.0f));
-        model = glm::scale(model, glm::vec3(1.0f, -1.0f, 1.0f));
-        model = glm::translate(model, glm::vec3(0.0f, 0.5f, 0.0f));
-
-        model = glm::translate(model, glm::vec3(0.0f, -0.5f, 0.0f));
-        model = glm::rotate(model, glm::radians(20.0f), glm::vec3(1.0f, 1.0f, 0.0f));
-		model = glm::scale(model, glm::vec3(0.005f));
-
+        model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
         shader.SetUniformMat4f("model", model);
-        ourModel.Draw(shader);
-        shader.Unbind();
-
-        // <2>绘制反射平面
-        glDisable(GL_STENCIL_TEST);
-        stl_Shader.Bind();
-        stl_Shader.SetUniformMat4f("model", glm::mat4(1.0f));
-
+        renderer.Draw(cubeVAO, shader, 36);
+        cubeVAO.Unbind();
+        
         planeVAO.Bind();
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        renderer.Draw(planeVAO, stl_Shader, 6);    
-        glDisable(GL_BLEND);
-
+        floorTexture.Active();
+        shader.SetUniformMat4f("model", glm::mat4(1.0f));
+        renderer.Draw(planeVAO, shader, 6);    
         planeVAO.Unbind();
-        stl_Shader.Unbind();
+
+        grassVAO.Bind();
+        grassTexture.Active();
+        for (size_t i = 0; i < vegetation.size(); i++)
+        {
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, vegetation[i]);
+            shader.SetUniformMat4f("model", model);
+            renderer.Draw(cubeVAO, shader, 6);
+        }
+        grassVAO.Unbind();
         
-        // <3>绘制原始物体
-        shader.Bind();
-        shader.SetUniformMat4f("view", view);
-        shader.SetUniformMat4f("projection", projection);
+        planeVAO.Bind();
+        floorTexture.Active();
+        shader.SetUniformMat4f("model", glm::mat4(1.0f));
+        renderer.Draw(planeVAO, shader, 6);    
+        planeVAO.Unbind();
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, -0.5f, 0.0f));
-        model = glm::rotate(model, glm::radians(20.0f), glm::vec3(1.0f, 1.0f, 0.0f));
-		model = glm::scale(model, glm::vec3(0.005f));
-
-        shader.SetUniformMat4f("model", model);
-        ourModel.Draw(shader);
         shader.Unbind();
-        
-        glEnable(GL_STENCIL_TEST);
-        glStencilMask(0xFF); //重新允许写入stencil
-        
+
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
 

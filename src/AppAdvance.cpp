@@ -13,13 +13,11 @@
 #include "Texture.h"
 #include "Renderer.h"
 #include "Camera.h"
+#include "FrameBuffer.h"
 
-#include <map>
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
 
 void processInput(GLFWwindow* window, float deltaTime); //键盘输入
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -28,7 +26,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera(glm::vec3(0.0f, 0.5f, 3.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -144,29 +142,17 @@ int main(void)
         -5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
          5.0f, -0.5f, -5.0f,  2.0f, 2.0f								
     };
-    float grassVertices[] = {
-        // positions         // texture Coords
-        0.0f,  0.5f,  0.0f,  0.0f,  1.0f,
-        0.0f, -0.5f,  0.0f,  0.0f,  0.0f,
-        1.0f, -0.5f,  0.0f,  1.0f,  0.0f,
+    // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
+	float quadVertices[] = {
+		// positions         // texCoords
+		-1.0f,  1.0f, 0.0f,  0.0f, 1.0f,
+		-1.0f, -1.0f, 0.0f,  0.0f, 0.0f,
+		 1.0f, -1.0f, 0.0f,  1.0f, 0.0f,
 
-        0.0f,  0.5f,  0.0f,  0.0f,  1.0f,
-        1.0f, -0.5f,  0.0f,  1.0f,  0.0f,
-        1.0f,  0.5f,  0.0f,  1.0f,  1.0f
-    };
-    std::vector<glm::vec3> vegetation;
-    vegetation.push_back(glm::vec3(-1.5f,  0.0f, -0.48f));
-    vegetation.push_back(glm::vec3( 1.5f,  0.0f,  0.51f));
-    vegetation.push_back(glm::vec3( 0.0f,  0.0f,  0.7f));
-    vegetation.push_back(glm::vec3(-0.3f,  0.0f, -2.3f));
-    vegetation.push_back(glm::vec3( 0.5f,  0.0f, -0.6f));
-
-    std::map<float, glm::vec3> sorted;
-    for (size_t i = 0; i < vegetation.size(); i++)
-    {
-        float distance = glm::length(camera.m_Position - vegetation[i]);
-        sorted[distance] = vegetation[i];
-    }
+		-1.0f,  1.0f, 0.0f,  0.0f, 1.0f,
+		 1.0f, -1.0f, 0.0f,  1.0f, 0.0f,
+		 1.0f,  1.0f, 0.0f,  1.0f, 1.0f
+	};
 
     VertexBufferLayout layout;
     layout.Push<float>(3); //位置
@@ -182,25 +168,29 @@ int main(void)
     planeVAO.AddBuffer(planeVBO, layout);
     planeVAO.Unbind();
 
-    VertexArray grassVAO; //草块顶点数组对象
-    VertexBuffer grassVBO(grassVertices, 6*5 * sizeof(float));
-    grassVAO.AddBuffer(grassVBO, layout);
-    grassVAO.Unbind();
+    VertexArray quadVAO; //Quad顶点数组
+	VertexBuffer quadVBO(quadVertices, 6 * 5 * sizeof(float));
+	quadVAO.AddBuffer(quadVBO, layout);
+	quadVAO.Unbind();
 
     Shader shader("res/shaders/Advance.shader");
-    shader.Bind(); //创建Program后绑定
+    Shader screenShader("res/shaders/Buffer.shader");
 
     // 创建并使用纹理
-    Texture cubeTexture("res/textures/marble.jpeg");
+    Texture cubeTexture("res/textures/container.jpg");
     Texture floorTexture("res/textures/metal.png");
-    Texture grassTexture("res/textures/window.png");
 
+    shader.Bind(); //创建Program后绑定
     shader.SetUniform1i("u_Texture", 0);
 
+    screenShader.Bind(); //创建Program后绑定
+    screenShader.SetUniform1i("screenTexture", 0);
+
     // Unbind Data
-    shader.Unbind();
-    cubeVAO.Unbind();
-    planeVAO.Unbind();
+    glUseProgram(0);
+
+    // 创建帧缓冲
+    FrameBuffer frameBuff;
 
     //线框模式(Wireframe Mode)
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -216,10 +206,13 @@ int main(void)
 
         processInput(window, deltaTime); //键盘输入处理
 
+        frameBuff.Bind();
+        glEnable(GL_DEPTH_TEST);
+
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        shader.Bind();//设置Uniform前先绑定Shader
+        shader.Bind();//设置Uniform前先绑定
 
         //设置模型矩阵/观察矩阵/投影矩阵
         glm::mat4 model = glm::mat4(1.0f);
@@ -229,11 +222,12 @@ int main(void)
         shader.SetUniformMat4f("view", view);
         shader.SetUniformMat4f("projection", projection);
         
+        // 绘制箱子模型
         cubeVAO.Bind();
+        cubeTexture.Active();
+
         model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
         shader.SetUniformMat4f("model", model);
-
-        cubeTexture.Active();
         renderer.Draw(cubeVAO, shader, 36);
 
         model = glm::mat4(1.0f);
@@ -242,24 +236,7 @@ int main(void)
         renderer.Draw(cubeVAO, shader, 36);
         cubeVAO.Unbind();
         
-        planeVAO.Bind();
-        floorTexture.Active();
-        shader.SetUniformMat4f("model", glm::mat4(1.0f));
-        renderer.Draw(planeVAO, shader, 6);    
-        planeVAO.Unbind();
-
-        grassVAO.Bind();
-        grassTexture.Active();
-        // 以逆序（从远到近）顺序绘制对应窗口
-        for (auto iter = sorted.rbegin(); iter != sorted.rend(); iter++)
-        {
-            model = glm::mat4(1.0f);
-            model = glm::translate(model, iter->second);
-            shader.SetUniformMat4f("model", model);
-            renderer.Draw(cubeVAO, shader, 6);
-        }
-        grassVAO.Unbind();
-        
+        // 绘制地板平面
         planeVAO.Bind();
         floorTexture.Active();
         shader.SetUniformMat4f("model", glm::mat4(1.0f));
@@ -267,15 +244,26 @@ int main(void)
         planeVAO.Unbind();
 
         shader.Unbind();
+        
+        frameBuff.Unbind();
+		glDisable(GL_DEPTH_TEST);
 
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		quadVAO.Bind();
+        screenShader.Bind();
+		glBindTexture(GL_TEXTURE_2D, frameBuff.GetTexID());
+		renderer.Draw(quadVAO, screenShader, 6);
+		quadVAO.Unbind();
+		screenShader.Unbind();
+        
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
 
         /* Poll for and process events */
         glfwPollEvents();
     }
-    cubeVAO.Delete();
-    planeVAO.Delete();
 
     glfwTerminate();
     return 0;

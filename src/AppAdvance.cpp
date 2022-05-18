@@ -209,7 +209,8 @@ int main(void)
         frameBuff.Bind();
         glEnable(GL_DEPTH_TEST);
 
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        //glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         shader.Bind();//设置Uniform前先绑定
@@ -226,12 +227,12 @@ int main(void)
         cubeVAO.Bind();
         cubeTexture.Active();
 
-        model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
+        model = glm::translate(model, glm::vec3(-1.0f, 0.01f, -1.0f));
         shader.SetUniformMat4f("model", model);
         renderer.Draw(cubeVAO, shader, 36);
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
+        model = glm::translate(model, glm::vec3(2.0f, 0.01f, 0.0f));
         shader.SetUniformMat4f("model", model);
         renderer.Draw(cubeVAO, shader, 36);
         cubeVAO.Unbind();

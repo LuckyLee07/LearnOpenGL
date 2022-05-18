@@ -7,10 +7,20 @@ FrameBuffer::FrameBuffer()
 	glGenFramebuffers(1, &m_BufferId);
 	glBindFramebuffer(GL_FRAMEBUFFER, m_BufferId);
 
+    float Tex_Width = SCR_WIDTH;
+    float Tex_Height = SCR_HEIGHT;
+    
+#ifdef __APPLE__//Retina屏设置
+    Tex_Width = SCR_WIDTH * 2;
+    Tex_Height = SCR_HEIGHT * 2;
+#endif
     // create a color attachment texture
 	glGenTextures(1, &m_TextureId);
 	glBindTexture(GL_TEXTURE_2D, m_TextureId);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Tex_Width, Tex_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -19,7 +29,7 @@ FrameBuffer::FrameBuffer()
     // create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
 	glGenRenderbuffers(1, &m_RenderId);
 	glBindRenderbuffer(GL_RENDERBUFFER, m_RenderId);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, Tex_Width, Tex_Height);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_RenderId);
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)

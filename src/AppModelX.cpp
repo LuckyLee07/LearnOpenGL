@@ -2,7 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
-//#define APP_MAIN
+#define APP_MAIN
 #ifdef APP_MAIN //启用新的main函数
 
 #include "VertexBuffer.h"
@@ -25,7 +25,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera(glm::vec3(0.0f, 0.5f, 3.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -204,7 +204,11 @@ int main(void)
 
     Renderer renderer; //渲染器
     float aspect = (float)SCR_WIDTH/(float)SCR_HEIGHT;
-    
+    glm::vec3 modelPos[] = {
+        glm::vec3( 0.5f, -0.5f,  0.5f),
+        glm::vec3(-1.0f,  0.0f, -1.0f),
+        glm::vec3( 2.0f,  0.0f,  0.0f)
+    };
     while (!glfwWindowShouldClose(window))
     {
         float currTime = glfwGetTime();
@@ -226,7 +230,7 @@ int main(void)
         
         //绘制地板时禁止写入
         glStencilMask(0x00);
-        // 绘制地板平面
+        // 绘制平面地板
         shader.Bind();//设置Uniform前先绑定Shader
         shader.SetUniformMat4f("view", view);
         shader.SetUniformMat4f("projection", projection);
@@ -237,64 +241,64 @@ int main(void)
         renderer.Draw(planeVAO, shader, 6);    
         planeVAO.Unbind();
 
-        // 绘制物体模型
-        glStencilFunc(GL_ALWAYS, 1, 0xFF);
-        glStencilMask(0xFF);
-        
-        cubeVAO.Bind();
-        model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
-        shader.SetUniformMat4f("model", model);
-        cubeTexture.Active();
-        renderer.Draw(cubeVAO, shader, 36);
+        // 绘制物体模型及其轮廓
+        for (int idx = 2; idx >= 0; idx--)
+        {
+            // 开启模版缓冲写入
+            glStencilFunc(GL_ALWAYS, 1, 0xFF);
+            glStencilMask(0xFF);
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(2.5f, 0.0f, 0.0f));
-        shader.SetUniformMat4f("model", model);
-        renderer.Draw(cubeVAO, shader, 36);
-        cubeVAO.Unbind();
-        
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.5f, -0.5f, 0.5f));
-        model = glm::scale(model, glm::vec3(0.1f));
-        shader.SetUniformMat4f("model", model);
-        ourModel.Draw(shader); //绘制模型
-        shader.Unbind();
-        
-        // 绘制物体模型轮廓
-        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-        glStencilMask(0x00); //禁止写入stencil
-        glDisable(GL_DEPTH_TEST);
-        
-        cubeVAO.Bind();
-        stl_Shader.Bind();
-        stl_Shader.SetUniform1f("scaleFactor", 0.0f);
-        stl_Shader.SetUniformMat4f("view", view);
-        stl_Shader.SetUniformMat4f("projection", projection);
+            if (idx > 0) //箱子模型
+            {
+                cubeVAO.Bind();
+                cubeTexture.Active();
+            }
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
-        model = glm::scale(model, glm::vec3(1.02f));
-        stl_Shader.SetUniformMat4f("model", model);
-        renderer.Draw(cubeVAO, stl_Shader, 36);
+            // 先绘制物体模型
+            shader.Bind();
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, modelPos[idx]);
+            if (idx == 0) model = glm::scale(model, glm::vec3(0.1f));
+            shader.SetUniformMat4f("model", model);
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(2.5f, 0.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(1.02f));
-        stl_Shader.SetUniformMat4f("model", model);
-        renderer.Draw(cubeVAO, shader, 36);
-        cubeVAO.Unbind();
+            if (idx == 0) 
+                ourModel.Draw(shader);
+            else
+                renderer.Draw(cubeVAO, shader, 36);
 
-        stl_Shader.SetUniform1f("scaleFactor", 0.01f);
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.5f, -0.5f, 0.5f));
-        model = glm::scale(model, glm::vec3(0.1f));
-        stl_Shader.SetUniformMat4f("model", model);
-        ourModel.Draw(stl_Shader); //绘制模型
-        stl_Shader.Unbind();
-        
-        glStencilMask(0xFF); //允许写入stencil
-        glEnable(GL_DEPTH_TEST);
-        
+            // 设置禁用深度及模版缓冲写入
+            glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+            glStencilMask(0x00); //禁止写入stencil
+            glDisable(GL_DEPTH_TEST);
+
+            // 放大模型绘制轮廓
+            stl_Shader.Bind();
+            if (idx == 0)
+                stl_Shader.SetUniform1f("scaleFactor", 0.01f);
+            else
+                stl_Shader.SetUniform1f("scaleFactor", 0.00f);
+            stl_Shader.SetUniformMat4f("view", view);
+            stl_Shader.SetUniformMat4f("projection", projection);
+
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, modelPos[idx]);
+            if (idx == 0)
+                model = glm::scale(model, glm::vec3(0.1f)); //保持不变 法线方向外扩
+            else
+                model = glm::scale(model, glm::vec3(1.02f)); //放大一点点
+            stl_Shader.SetUniformMat4f("model", model);
+            if (idx == 0) 
+                ourModel.Draw(stl_Shader);
+            else
+                renderer.Draw(cubeVAO, stl_Shader, 36);
+            if (idx > 0) cubeVAO.Unbind();
+
+            glStencilMask(0xFF); //允许写入stencil
+            //清空STENCIL_BUFFER 绘制重叠物体间的轮廓
+            glClear(GL_STENCIL_BUFFER_BIT);
+            glEnable(GL_DEPTH_TEST);
+        }
+                
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
 

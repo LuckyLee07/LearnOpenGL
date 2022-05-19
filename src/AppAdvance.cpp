@@ -2,7 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
-#define APP_MAIN
+//#define APP_MAIN
 #ifdef APP_MAIN //启用新的main函数
 
 #include "VertexBuffer.h"
@@ -208,7 +208,7 @@ int main(void)
 
         frameBuff.Bind();
         glEnable(GL_DEPTH_TEST);
-
+        
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         //glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -248,7 +248,7 @@ int main(void)
         
         frameBuff.Unbind();
 		glDisable(GL_DEPTH_TEST);
-
+        
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 

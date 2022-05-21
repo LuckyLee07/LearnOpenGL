@@ -2,7 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
-#define APP_MAIN
+//#define APP_MAIN
 #ifdef APP_MAIN //启用新的main函数
 
 #include "VertexBuffer.h"
@@ -242,6 +242,8 @@ int main(void)
         planeVAO.Unbind();
 
         // 绘制物体模型及其轮廓
+        //1.glStencilMask(0x00)不仅会阻止模板缓冲的写入，也会阻止其清空(glClear(stencil_buffer)无效)
+        //2.要在每个物体渲染一个完整的边框，需要让物体和边框在一 个循环中写入，同时在该循环最后清空模板缓冲
         for (int idx = 2; idx >= 0; idx--)
         {
             // 开启模版缓冲写入

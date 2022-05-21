@@ -9,7 +9,7 @@ private:
     unsigned int m_RenderId;
 
 public:
-    FrameBuffer();
+    FrameBuffer(int ctype=0);
     ~FrameBuffer();
 
     void Bind() const;

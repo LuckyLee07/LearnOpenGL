@@ -70,3 +70,21 @@
  #### 1、TestMenu类的一些实现细节：存储的是函数指针std::function<Test*()>
   * 注意点1：`std::vector<std::pair<std::string, std::function<Test*()>>> m_Tests;`
   * 注意点2：`m_Tests.push_back(std::make_pair(name, []() { return new T(); }));`
+
+
+ -----2020.05.22-----
+### <font size=4 color=#1E90FF>**<5> 高级OpenGL相关技术**</font>
+ #### 1、模型变换中的镜像变换 对应Scale值改成-1即可
+  * 参考的链接：https://blog.csdn.net/wangdingqiaoit/article/details/51531002
+
+ #### 2、模版测试中的镜面效果
+  * 参考的链接：https://blog.csdn.net/wangdingqiaoit/article/details/52143197
+
+ #### 3、混合(Blending)中的丢弃片段及渲染半透明纹理
+  * 参考的链接：https://learnopengl-cn.github.io/04%20Advanced%20OpenGL/03%20Blending/
+
+ #### 4、模版测试中绘制物体轮廓时模型重叠时的处理及中心点不在中心位置的物体缩放问题
+  * 参考的链接：https://zhuanlan.zhihu.com/p/464740166
+
+ #### 5、OpenGL 立方体贴图(CubeMap)原理
+  * 参考的链接：https://blog.csdn.net/xiji333/article/details/115771348

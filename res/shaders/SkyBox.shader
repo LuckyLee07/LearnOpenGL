@@ -9,7 +9,7 @@ uniform mat4 view;
 
 void main()
 {
-    TexCoords = aPos;
+    TexCoords = aPos; //当立方体中央处于原点时 立方体上顶点位置即等价于采样向量
     vec4 pos = projection * view * vec4(aPos, 1.0);
     gl_Position = pos.xyww; // z -> w/w = 1.0
 }

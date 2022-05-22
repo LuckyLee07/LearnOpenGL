@@ -2,7 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
-//#define APP_MAIN
+#define APP_MAIN
 #ifdef APP_MAIN //启用新的main函数
 
 #include "VertexBuffer.h"
@@ -211,29 +211,40 @@ int main(void)
     skyboxVAO.AddBuffer(skyboxVBO, layout1);
     skyboxVAO.Unbind();
 
-    // 创建天空盒纹理
-    std::vector<const char*> tex_faces;
-    tex_faces.push_back("res/skybox/right.jpg");
-    tex_faces.push_back("res/skybox/left.jpg");
-    tex_faces.push_back("res/skybox/top.jpg");
-    tex_faces.push_back("res/skybox/bottom.jpg");
-    tex_faces.push_back("res/skybox/back.jpg");
-    tex_faces.push_back("res/skybox/front.jpg");
-    CubeMap skyboxCubemap(tex_faces); //CubeMap
-
+    // 创建天空盒纹理 六个面
+    const char* texfilePath[6] = {
+        "res/skybox/right.jpg",
+        "res/skybox/left.jpg",
+        "res/skybox/top.jpg",
+        "res/skybox/bottom.jpg",
+        "res/skybox/back.jpg",
+        "res/skybox/front.jpg",
+    };
+    std::vector<Texture> skyboxTex;
+    for (size_t idx = 0; idx < 6; idx++)
+    {
+        Texture texture(texfilePath[idx]);
+        texture.SetSlot(idx);
+        skyboxTex.push_back(texture);
+    }
+    
     // 创建并使用纹理
-    Texture floorTexture("res/textures/metal.png");
     Texture cubeTexture("res/textures/container.jpg");
 
     // 创建shader着色器
     Shader modelShader("res/shaders/Advance.shader");
-    Shader skyboxShader("res/shaders/SkyBox.shader");
+    Shader skyboxShader("res/shaders/SkyBox2D.shader");
 
     modelShader.Bind();
     modelShader.SetUniform1i("u_Texture", 0);
 
-    skyboxShader.Bind(); //创建Program后绑定
-    skyboxShader.SetUniform1i("skybox", 0);
+    skyboxShader.Bind(); //绑定后使用
+    skyboxShader.SetUniform1i("posx", 0);
+    skyboxShader.SetUniform1i("negx", 1);
+    skyboxShader.SetUniform1i("posy", 2);
+    skyboxShader.SetUniform1i("negy", 3);
+    skyboxShader.SetUniform1i("posz", 4);
+    skyboxShader.SetUniform1i("negz", 5);
 
     // Unbind Data
     glUseProgram(0);
@@ -272,13 +283,6 @@ int main(void)
         modelShader.SetUniformMat4f("model", model);
         renderer.Draw(cubeVAO, modelShader, 36);
         cubeVAO.Unbind();
-
-        // 绘制地板平面
-        planeVAO.Bind();
-        floorTexture.Active();
-        modelShader.SetUniformMat4f("model", glm::mat4(1.0f));
-        renderer.Draw(planeVAO, modelShader, 6);    
-        planeVAO.Unbind();
         modelShader.Unbind();
 
         //保证天空盒在值小于或等于深度缓冲时通过深度测试
@@ -289,12 +293,15 @@ int main(void)
         skyboxShader.SetUniformMat4f("view", view);
         skyboxShader.SetUniformMat4f("projection", projection);
 
+        // 激活天空盒纹理
+        for (size_t idx = 0; idx < 6; idx++)
+            skyboxTex[idx].Active();
+
         skyboxVAO.Bind();
-        skyboxCubemap.Active();
         renderer.Draw(skyboxVAO, skyboxShader, 36);
         skyboxVAO.Unbind();
         skyboxShader.Unbind();
-        glDepthFunc(GL_LESS);        
+        glDepthFunc(GL_LESS);
         
         /* Swap front and back buffers */
         glfwSwapBuffers(window);

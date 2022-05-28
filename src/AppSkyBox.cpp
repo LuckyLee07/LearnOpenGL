@@ -29,10 +29,12 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-Camera camera(glm::vec3(0.0f, 0.75f, 3.0f));
+Camera camera(glm::vec3(0.0f, 0.5f, 3.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
+
+glm::vec3 lightPos(2.5f, 1.5f, 0.0f);
 
 int main(void)
 {
@@ -84,14 +86,13 @@ int main(void)
     }
 
     //Blend 混合是将源色和目标色以某种方式混合生成特效的技术 常用来绘制透明或半透明的物体
-    glEnable(GL_BLEND); //启用混合
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    //glEnable(GL_BLEND); //启用混合
+    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glEnable(GL_DEPTH_TEST); //开启深度测试功能
 
     std::cout << glGetString(GL_VERSION) << std::endl;
-
-    float cubeVertices[] = {
+        float cubeVertices[] = {
         // position           // normals
         -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
          0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
@@ -135,6 +136,7 @@ int main(void)
         -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
         -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
     };
+
     float skyboxVertices[] = {
         // positions          
         -1.0f,  1.0f, -1.0f,
@@ -180,21 +182,19 @@ int main(void)
          1.0f, -1.0f,  1.0f
     };
 
-    VertexBufferLayout layout;
-    layout.Push<float>(3); //位置
-    layout.Push<float>(3); //法向量
-
-    VertexArray cubeVAO; //方块顶点数组对象
-    VertexBuffer cubeVBO(cubeVertices, 36*6 * sizeof(float));
-    cubeVAO.AddBuffer(cubeVBO, layout);
-    cubeVAO.Unbind();
-
     VertexBufferLayout layout1;
     layout1.Push<float>(3); //位置
+    layout1.Push<float>(3); //法向量
+    VertexArray cubeVAO; //方块顶点数组对象
+    VertexBuffer cubeVBO(cubeVertices, 36*6 * sizeof(float));
+    cubeVAO.AddBuffer(cubeVBO, layout1);
+    cubeVAO.Unbind();
 
+    VertexBufferLayout layout2;
+    layout2.Push<float>(3); //位置
     VertexArray skyboxVAO; //天空盒顶点数组对象
     VertexBuffer skyboxVBO(skyboxVertices, 36*3 * sizeof(float));
-    skyboxVAO.AddBuffer(skyboxVBO, layout1);
+    skyboxVAO.AddBuffer(skyboxVBO, layout2);
     skyboxVAO.Unbind();
 
     // 创建天空盒纹理
@@ -207,26 +207,24 @@ int main(void)
     tex_faces.push_back("res/skybox/front.jpg");
     CubeMap skyboxCubemap(tex_faces); //CubeMap
 
-    // 创建并使用纹理
-    Texture floorTexture("res/textures/metal.png");
-    Texture cubeTexture("res/textures/container.jpg");
-
     // 创建shader着色器
     Shader skyboxShader("res/shaders/SkyBox.shader");
-    Shader modelShader("res/shaders/EnvMapping.shader");
+    skyboxShader.Bind(); //创建Program后绑定
+    skyboxShader.SetUniform1i("skybox", 0);
+    skyboxShader.Unbind();
 
+    Shader modelShader("res/shaders/EnvMapping.shader");
     modelShader.Bind();
     modelShader.SetUniform1i("skybox", 0);
 
-    skyboxShader.Bind(); //创建Program后绑定
-    skyboxShader.SetUniform1i("skybox", 0);
+    modelShader.SetUniform3f("light.position", lightPos);
+    modelShader.SetUniform3f("light.ambient", glm::vec3(0.3f));
+    modelShader.SetUniform3f("light.diffuse", glm::vec3(0.5f));
+    modelShader.SetUniform3f("light.specular", glm::vec3(0.8f));
+    modelShader.Unbind();
 
-    // 设置模型加载
-    Model ourModel("res/nanosuit/nanosuit.obj", 0.1f);
-    //Model ourModel("res/miniw/cloudportal.obj", 0.01f);
-
-    // Unbind Data
-    glUseProgram(0);
+    // 设置模型加载 带反射贴图
+    Model ourModel("res/nanosuit_ref/nanosuit.obj", 0.17f);
 
     //线框模式(Wireframe Mode)
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -249,32 +247,30 @@ int main(void)
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom()), aspect, 0.1f, 100.0f);
-        
-        skyboxCubemap.Active(); //因都用到因此先active
 
+        skyboxCubemap.SetSlot(0);
+        skyboxCubemap.Active();
+        
         // 1、先绘制箱子模型
         modelShader.Bind();//设置Uniform前先绑定
+
+        modelShader.SetUniform3f("cameraPos", camera.m_Position);
+        //modelShader.SetUniform3f("light.position", lightPos);
+
         modelShader.SetUniformMat4f("view", view);
         modelShader.SetUniformMat4f("projection", projection);
-        modelShader.SetUniform3f("cameraPos", camera.m_Position);
 
         model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, -1.5f, 0.0f));
         model = glm::scale(model, glm::vec3(ourModel.GetScale()));
         modelShader.SetUniformMat4f("model", model);
         ourModel.Draw(modelShader);
         modelShader.Unbind();
-        /*
-        cubeVAO.Bind();
-        cubeTexture.Active();
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-1.0f, 0.01f, -1.0f));
-        modelShader.SetUniformMat4f("model", model);
-        renderer.Draw(cubeVAO, modelShader, 36);
-        cubeVAO.Unbind();
-        */
-
+        
         //保证天空盒在值小于或等于深度缓冲时通过深度测试
         glDepthFunc(GL_LEQUAL);
+        skyboxCubemap.SetSlot(0);
+        skyboxCubemap.Active();
         // 2、再绘制天空盒
         skyboxShader.Bind();//设置Uniform前先绑定
         view = glm::mat4(glm::mat3(camera.GetViewMatrix()));

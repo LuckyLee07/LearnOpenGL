@@ -104,6 +104,9 @@ Mesh Model::processMesh(aiMesh *pMesh, const aiScene *pScene)
 
 		std::vector<Texture> speculaMaps = loadMaterialTextures(pMaterial, aiTextureType_SPECULAR, "texture_specula");
 		textures.insert(textures.end(), speculaMaps.begin(), speculaMaps.end());
+
+		std::vector<Texture> ambientMaps = loadMaterialTextures(pMaterial, aiTextureType_AMBIENT, "texture_reflect");
+		textures.insert(textures.end(), ambientMaps.begin(), ambientMaps.end());
 	}
 	if (textures.size() == 0) //无材质则取同名jpg图片
 	{

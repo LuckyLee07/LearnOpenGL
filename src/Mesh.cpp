@@ -20,20 +20,23 @@ void Mesh::Draw(Shader& shader)
 {
     glBindVertexArray(m_VAO);
 
-	uint diffuseNr = 1, specularNr = 1, texCnt = 0;
+	uint texCnt = 0;
+	uint diffuseNr = 1, specularNr = 1, reflectNr = 1;
 	for (uint idx = 0; idx < m_Textures.size(); idx++)
 	{
-		m_Textures[idx].SetSlot(idx);//设置纹理单元槽
-
 		std::string texNumber;
 		std::string cType = m_Textures[idx].GetType();
 		if (cType == "texture_diffuse")
 			texNumber = std::to_string(diffuseNr++);
 		else if (cType == "texture_specular")
 			texNumber = std::to_string(specularNr++);
+		else if (cType == "texture_reflect")
+			texNumber = std::to_string(reflectNr++);
 		if (texNumber.empty()) continue;
 
-		shader.SetUniform1i(cType + texNumber, texCnt++);
+		unsigned int curSlot = idx + 1;
+		m_Textures[idx].SetSlot(curSlot);//设置纹理单元槽
+		shader.SetUniform1i(cType + texNumber, curSlot);
 		m_Textures[idx].Active(); //激活纹理单元
 	}
 	

@@ -5,7 +5,8 @@
 #include "assimp/Importer.hpp"
 #include "assimp/postprocess.h"
 
-Model::Model(const char* filePath)
+Model::Model(const char* filePath, float scale)
+	: m_scale(scale)
 {
 	m_filePath = filePath;
 

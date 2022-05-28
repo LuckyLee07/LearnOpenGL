@@ -2,7 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
-//#define APP_MAIN
+#define APP_MAIN
 #ifdef APP_MAIN //启用新的main函数
 
 #include "VertexBuffer.h"
@@ -15,6 +15,7 @@
 #include "Camera.h"
 #include "FrameBuffer.h"
 #include "CubeMap.h"
+#include "Model.h"
 
 #include "stb_image/stb_image.h"
 
@@ -28,7 +29,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-Camera camera(glm::vec3(0.0f, 0.5f, 3.0f));
+Camera camera(glm::vec3(0.0f, 0.75f, 3.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -91,58 +92,48 @@ int main(void)
     std::cout << glGetString(GL_VERSION) << std::endl;
 
     float cubeVertices[] = {
-        // positions          // texture Coords
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+        // position           // normals
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
 
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
 
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
 
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
 
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
 
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-    };
-    float planeVertices[] = {
-        // positions          // texture Coords
-         5.0f, -0.5f,  5.0f,  2.0f, 0.0f,
-        -5.0f, -0.5f,  5.0f,  0.0f, 0.0f,
-        -5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
-
-         5.0f, -0.5f,  5.0f,  2.0f, 0.0f,
-        -5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
-         5.0f, -0.5f, -5.0f,  2.0f, 2.0f								
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
     };
     float skyboxVertices[] = {
         // positions          
@@ -191,17 +182,12 @@ int main(void)
 
     VertexBufferLayout layout;
     layout.Push<float>(3); //位置
-    layout.Push<float>(2); //纹理
+    layout.Push<float>(3); //法向量
 
     VertexArray cubeVAO; //方块顶点数组对象
-    VertexBuffer cubeVBO(cubeVertices, 36*5 * sizeof(float));
+    VertexBuffer cubeVBO(cubeVertices, 36*6 * sizeof(float));
     cubeVAO.AddBuffer(cubeVBO, layout);
     cubeVAO.Unbind();
-
-    VertexArray planeVAO; //地板顶点数组对象
-    VertexBuffer planeVBO(planeVertices, 6*5 * sizeof(float));
-    planeVAO.AddBuffer(planeVBO, layout);
-    planeVAO.Unbind();
 
     VertexBufferLayout layout1;
     layout1.Push<float>(3); //位置
@@ -226,14 +212,18 @@ int main(void)
     Texture cubeTexture("res/textures/container.jpg");
 
     // 创建shader着色器
-    Shader modelShader("res/shaders/Advance.shader");
     Shader skyboxShader("res/shaders/SkyBox.shader");
+    Shader modelShader("res/shaders/EnvMapping.shader");
 
     modelShader.Bind();
-    modelShader.SetUniform1i("u_Texture", 0);
+    modelShader.SetUniform1i("skybox", 0);
 
     skyboxShader.Bind(); //创建Program后绑定
     skyboxShader.SetUniform1i("skybox", 0);
+
+    // 设置模型加载
+    Model ourModel("res/nanosuit/nanosuit.obj", 0.1f);
+    //Model ourModel("res/miniw/cloudportal.obj", 0.01f);
 
     // Unbind Data
     glUseProgram(0);
@@ -260,26 +250,28 @@ int main(void)
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom()), aspect, 0.1f, 100.0f);
         
+        skyboxCubemap.Active(); //因都用到因此先active
+
         // 1、先绘制箱子模型
         modelShader.Bind();//设置Uniform前先绑定
-        //view = camera.GetViewMatrix();
         modelShader.SetUniformMat4f("view", view);
         modelShader.SetUniformMat4f("projection", projection);
+        modelShader.SetUniform3f("cameraPos", camera.m_Position);
 
+        model = glm::mat4(1.0f);
+        model = glm::scale(model, glm::vec3(ourModel.GetScale()));
+        modelShader.SetUniformMat4f("model", model);
+        ourModel.Draw(modelShader);
+        modelShader.Unbind();
+        /*
         cubeVAO.Bind();
         cubeTexture.Active();
+        model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(-1.0f, 0.01f, -1.0f));
         modelShader.SetUniformMat4f("model", model);
         renderer.Draw(cubeVAO, modelShader, 36);
         cubeVAO.Unbind();
-
-        // 绘制地板平面
-        planeVAO.Bind();
-        floorTexture.Active();
-        modelShader.SetUniformMat4f("model", glm::mat4(1.0f));
-        renderer.Draw(planeVAO, modelShader, 6);    
-        planeVAO.Unbind();
-        modelShader.Unbind();
+        */
 
         //保证天空盒在值小于或等于深度缓冲时通过深度测试
         glDepthFunc(GL_LEQUAL);
@@ -290,7 +282,6 @@ int main(void)
         skyboxShader.SetUniformMat4f("projection", projection);
 
         skyboxVAO.Bind();
-        skyboxCubemap.Active();
         renderer.Draw(skyboxVAO, skyboxShader, 36);
         skyboxVAO.Unbind();
         skyboxShader.Unbind();

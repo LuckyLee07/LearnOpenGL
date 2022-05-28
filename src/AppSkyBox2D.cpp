@@ -2,7 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
-#define APP_MAIN
+//#define APP_MAIN
 #ifdef APP_MAIN //启用新的main函数
 
 #include "VertexBuffer.h"
